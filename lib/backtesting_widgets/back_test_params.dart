@@ -1,0 +1,550 @@
+import 'package:backtesting_app/utils/app_theme.dart';
+import 'package:backtesting_app/utils/form_state_data.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../utils/ui_helpers.dart';
+
+class BacktestParamsSection extends StatelessWidget {
+  final BacktestFormModel form;
+  final VoidCallback onChanged;
+
+  const BacktestParamsSection({super.key, required this.form, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Backtest Parameters',
+          style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary)),
+        const SizedBox(height: 2),
+        Text('Configure the test period, timing, and target parameters',
+          style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.textSecondary)),
+        const SizedBox(height: 16),
+        // Responsive grid
+        LayoutBuilder(builder: (ctx, constraints) {
+          final wide = constraints.maxWidth > 860;
+          final med  = constraints.maxWidth > 540;
+          if (wide) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _TestPeriodCard(form: form, onChanged: onChanged)),
+                const SizedBox(width: 16),
+                Expanded(child: _TimingCard(form: form, onChanged: onChanged)),
+                const SizedBox(width: 16),
+                Expanded(child: _TargetsCard(form: form, onChanged: onChanged)),
+              ],
+            );
+          }
+          if (med) {
+            return Column(children: [
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Expanded(child: _TestPeriodCard(form: form, onChanged: onChanged)),
+                const SizedBox(width: 16),
+                Expanded(child: _TimingCard(form: form, onChanged: onChanged)),
+              ]),
+              const SizedBox(height: 16),
+              _TargetsCard(form: form, onChanged: onChanged),
+            ]);
+          }
+          return Column(children: [
+            _TestPeriodCard(form: form, onChanged: onChanged),
+            const SizedBox(height: 16),
+            _TimingCard(form: form, onChanged: onChanged),
+            const SizedBox(height: 16),
+            _TargetsCard(form: form, onChanged: onChanged),
+          ]);
+        }),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  Test Period card
+// ─────────────────────────────────────────────────────────────────
+class _TestPeriodCard extends StatelessWidget {
+  final BacktestFormModel form;
+  final VoidCallback onChanged;
+
+  const _TestPeriodCard({required this.form, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ParamCard(
+      icon: Icons.calendar_month_outlined,
+      iconBg: const Color(0xFFFFF3E0),
+      iconColor: Colors.orange,
+      title: 'Test Period',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const FieldLabel('TIME PERIOD'),
+          const SizedBox(height: 6),
+          StyledDropdown<String>(
+            value: form.timePeriod,
+            items: const ['Custom','1 Month','3 Months','6 Months','1 Year'],
+            onChanged: (v) { if (v != null) { form.timePeriod = v; onChanged(); } },
+          ),
+          const SizedBox(height: 14),
+          Row(children: [
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FieldLabel('FROM DATE'),
+                const SizedBox(height: 6),
+                _DatePicker(
+                  date: form.fromDate,
+                  onChanged: (d) { form.fromDate = d; onChanged(); },
+                ),
+              ],
+            )),
+            const SizedBox(width: 12),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FieldLabel('TO DATE'),
+                const SizedBox(height: 6),
+                _DatePicker(
+                  date: form.toDate,
+                  onChanged: (d) { form.toDate = d; onChanged(); },
+                ),
+              ],
+            )),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  Timing card
+// ─────────────────────────────────────────────────────────────────
+class _TimingCard extends StatelessWidget {
+  final BacktestFormModel form;
+  final VoidCallback onChanged;
+
+  const _TimingCard({required this.form, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ParamCard(
+      icon: Icons.access_time_outlined,
+      iconBg: const Color(0xFFFFF3E0),
+      iconColor: Colors.orange,
+      title: 'Timing',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // No. of times
+          const FieldLabel('NO. OF TIMES'),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _circleBtn(Icons.remove, () {
+                if (form.noOfTimes > 0) form.noOfTimes--;
+                onChanged();
+              }),
+              SizedBox(
+                width: 44,
+                child: Text('${form.noOfTimes}',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600)),
+              ),
+              _circleBtn(Icons.add, () { form.noOfTimes++; onChanged(); }),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Expiry
+          const FieldLabel('EXPIRY'),
+          const SizedBox(height: 6),
+          _SegmentToggle(
+            options: const ['Weekly', 'Monthly'],
+            selected: form.expiry,
+            onChanged: (v) { form.expiry = v; onChanged(); },
+          ),
+          const SizedBox(height: 14),
+          // Entry / Exit time
+          Row(children: [
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FieldLabel('ENTRY TIME'),
+                const SizedBox(height: 6),
+                _TimePicker(
+                  value: form.entryTime,
+                  onChanged: (t) { form.entryTime = t; onChanged(); },
+                ),
+              ],
+            )),
+            const SizedBox(width: 12),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FieldLabel('EXIT TIME'),
+                const SizedBox(height: 6),
+                _TimePicker(
+                  value: form.exitTime,
+                  onChanged: (t) { form.exitTime = t; onChanged(); },
+                ),
+              ],
+            )),
+          ]),
+          const SizedBox(height: 14),
+          // Days
+          const FieldLabel('DAY'),
+          const SizedBox(height: 8),
+          _DaySelector(days: form.days, onChanged: onChanged),
+        ],
+      ),
+    );
+  }
+
+  Widget _circleBtn(IconData icon, VoidCallback onTap) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(20),
+    child: Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Icon(icon, size: 14, color: AppColors.textSecondary),
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  Targets card
+// ─────────────────────────────────────────────────────────────────
+class _TargetsCard extends StatelessWidget {
+  final BacktestFormModel form;
+  final VoidCallback onChanged;
+
+  const _TargetsCard({required this.form, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return _ParamCard(
+      icon: Icons.gps_fixed_outlined,
+      iconBg: const Color(0xFFE3F2FD),
+      iconColor: Colors.blue,
+      title: 'Targets',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            _TypeBtn(label: '₹', selected: form.targetInRupees,
+                onTap: () { form.targetInRupees = true; onChanged(); }),
+            const SizedBox(width: 8),
+            _TypeBtn(label: '%', selected: !form.targetInRupees,
+                onTap: () { form.targetInRupees = false; onChanged(); }),
+          ]),
+          const SizedBox(height: 16),
+          Row(children: [
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FieldLabel('TARGET'),
+                const SizedBox(height: 6),
+                _CurrencyInput(
+                  prefix: form.targetInRupees ? '₹' : '%',
+                  value: form.target,
+                  onChanged: (v) { form.target = v; onChanged(); },
+                ),
+              ],
+            )),
+            const SizedBox(width: 12),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FieldLabel('STOP LOSS'),
+                const SizedBox(height: 6),
+                _CurrencyInput(
+                  prefix: form.targetInRupees ? '₹' : '%',
+                  value: form.stopLoss,
+                  onChanged: (v) { form.stopLoss = v; onChanged(); },
+                ),
+              ],
+            )),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  Shared param card wrapper
+// ─────────────────────────────────────────────────────────────────
+class _ParamCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconBg;
+  final Color iconColor;
+  final String title;
+  final Widget child;
+
+  const _ParamCard({
+    required this.icon,
+    required this.iconBg,
+    required this.iconColor,
+    required this.title,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: AppColors.border),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(7)),
+            child: Icon(icon, size: 15, color: iconColor),
+          ),
+          const SizedBox(width: 10),
+          Text(title, style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w700)),
+        ]),
+        const SizedBox(height: 16),
+        child,
+      ],
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  Small helpers
+// ─────────────────────────────────────────────────────────────────
+class _SegmentToggle extends StatelessWidget {
+  final List<String> options;
+  final String selected;
+  final ValueChanged<String> onChanged;
+
+  const _SegmentToggle({required this.options, required this.selected, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: options.map((o) {
+      final sel = o == selected;
+      return GestureDetector(
+        onTap: () => onChanged(o),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            color: sel ? AppColors.accent : AppColors.surface,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: sel ? AppColors.accent : AppColors.border),
+          ),
+          child: Text(o,
+            style: GoogleFonts.dmSans(
+              fontSize: 13, fontWeight: FontWeight.w600,
+              color: sel ? Colors.white : AppColors.textSecondary)),
+        ),
+      );
+    }).toList(),
+  );
+}
+
+class _DaySelector extends StatelessWidget {
+  final List<bool> days;
+  final VoidCallback onChanged;
+  static const _labels = ['M', 'T', 'W', 'T', 'F'];
+
+  const _DaySelector({required this.days, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final allSelected = days.every((d) => d);
+    return Wrap(
+      spacing: 6,
+      children: [
+        ...List.generate(5, (i) {
+          final sel = days[i];
+          return GestureDetector(
+            onTap: () { days[i] = !days[i]; onChanged(); },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width: 34, height: 34,
+              decoration: BoxDecoration(
+                color: sel ? AppColors.accent : AppColors.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: sel ? AppColors.accent : AppColors.border),
+              ),
+              child: Center(
+                child: Text(_labels[i],
+                  style: GoogleFonts.dmSans(
+                    fontSize: 12, fontWeight: FontWeight.w700,
+                    color: sel ? Colors.white : AppColors.textSecondary)),
+              ),
+            ),
+          );
+        }),
+        GestureDetector(
+          onTap: () {
+            final newVal = !allSelected;
+            for (int i = 0; i < 5; i++) days[i] = newVal;
+            onChanged();
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.accent,
+              borderRadius: BorderRadius.circular(17),
+            ),
+            child: Text('ALL',
+              style: GoogleFonts.dmSans(
+                fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DatePicker extends StatelessWidget {
+  final DateTime date;
+  final ValueChanged<DateTime> onChanged;
+
+  const _DatePicker({required this.date, required this.onChanged});
+
+  String _fmt(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: () async {
+      final p = await showDatePicker(
+        context: context,
+        initialDate: date,
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2030),
+      );
+      if (p != null) onChanged(p);
+    },
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(children: [
+        Expanded(child: Text(_fmt(date),
+            style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.textPrimary))),
+        const Icon(Icons.calendar_today, size: 13, color: AppColors.textHint),
+      ]),
+    ),
+  );
+}
+
+class _TimePicker extends StatelessWidget {
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  const _TimePicker({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: () async {
+      final parts = value.split(':');
+      final t = TimeOfDay(
+        hour: int.tryParse(parts.first) ?? 9,
+        minute: int.tryParse(parts.last) ?? 15,
+      );
+      final p = await showTimePicker(context: context, initialTime: t);
+      if (p != null) {
+        final h = p.hour.toString().padLeft(2, '0');
+        final m = p.minute.toString().padLeft(2, '0');
+        onChanged('$h:$m');
+      }
+    },
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(children: [
+        Expanded(child: Text(value,
+            style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.textPrimary))),
+        const Icon(Icons.access_time, size: 13, color: AppColors.textHint),
+      ]),
+    ),
+  );
+}
+
+class _CurrencyInput extends StatelessWidget {
+  final String prefix;
+  final String? value;
+  final ValueChanged<String?> onChanged;
+
+  const _CurrencyInput({required this.prefix, this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) => TextField(
+    controller: TextEditingController(text: value),
+    keyboardType: TextInputType.number,
+    onChanged: (v) => onChanged(v.isEmpty ? null : v),
+    style: GoogleFonts.dmSans(fontSize: 13),
+    decoration: InputDecoration(
+      prefixText: '$prefix ',
+      prefixStyle: GoogleFonts.dmSans(fontSize: 13, color: AppColors.textSecondary),
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(6),
+          borderSide: const BorderSide(color: AppColors.border)),
+      enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(6),
+          borderSide: const BorderSide(color: AppColors.border)),
+      focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(6),
+          borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5)),
+    ),
+  );
+}
+
+class _TypeBtn extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TypeBtn({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      width: 42, height: 36,
+      decoration: BoxDecoration(
+        color: selected ? AppColors.accent : AppColors.surface,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: selected ? AppColors.accent : AppColors.border),
+      ),
+      child: Center(
+        child: Text(label,
+          style: GoogleFonts.dmSans(
+            fontSize: 15, fontWeight: FontWeight.w700,
+            color: selected ? Colors.white : AppColors.textSecondary)),
+      ),
+    ),
+  );
+}
