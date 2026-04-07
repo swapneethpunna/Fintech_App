@@ -117,7 +117,6 @@ class _LegCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(children: [
             Icon(icon, size: 15, color: iconColor),
             const SizedBox(width: 6),
@@ -181,18 +180,14 @@ class _LegRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isSmall = constraints.maxWidth < 600;
-
-        return Wrap(
+    return Wrap(
           spacing: 12,
           runSpacing: 10,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             // Buy / Sell
             _fieldWrapper(
-              label: isSmall ? 'SIDE' : null,
+              label: 'BUY/SELL',
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: ['B', 'S'].map((side) {
@@ -238,9 +233,9 @@ class _LegRow extends StatelessWidget {
 
             // Instrument
             _fieldWrapper(
-              label: isSmall ? 'INSTRUMENT' : null,
+              label:  'INSTRUMENT' ,
               child: SizedBox(
-                width: isSmall ? double.infinity : 140,
+                width:  140,
                 child: StyledDropdown<String>(
                   value: instruments.contains(leg.instrument)
                       ? leg.instrument
@@ -258,9 +253,9 @@ class _LegRow extends StatelessWidget {
 
             // Strike
             _fieldWrapper(
-              label: isSmall ? 'STRIKE' : null,
+              label:  'STRIKE' ,
               child: SizedBox(
-                width: isSmall ? double.infinity : 130,
+                width:  130,
                 child: StyledDropdown<String>(
                   value: AppData.strikes.contains(leg.strike)
                       ? leg.strike
@@ -278,7 +273,7 @@ class _LegRow extends StatelessWidget {
 
             // Qty
             _fieldWrapper(
-              label: isSmall ? 'QTY' : null,
+              label:  'QTY',
               child: _QtyStepper(
                 qty: leg.quantity,
                 onIncrement: onIncrement,
@@ -289,7 +284,7 @@ class _LegRow extends StatelessWidget {
             // Delete
             if (canDelete)
               _fieldWrapper(
-                label: isSmall ? 'DELETE' : null,
+                label: 'DELETE' ,
                 child: InkWell(
                   onTap: onDelete,
                   borderRadius: BorderRadius.circular(6),
@@ -309,8 +304,6 @@ class _LegRow extends StatelessWidget {
               ),
           ],
         );
-      },
-    );
   }
 
   Widget _fieldWrapper({String? label, required Widget child}) {

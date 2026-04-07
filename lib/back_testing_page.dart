@@ -38,6 +38,7 @@ class _BacktestingPageState extends State<BacktestingPage> {
     super.dispose();
   }
 
+// payload for backtesting api body
   Map<String, dynamic> _buildPayload() {
     final f = _form;
     final tfMap = {
@@ -93,6 +94,7 @@ class _BacktestingPageState extends State<BacktestingPage> {
     };
   }
 
+// run the backtesting api call
   Future<void> _runBacktest() async {
     setState(() { _isRunning = true; _resultData = null; });
     try {
@@ -154,6 +156,7 @@ class _BacktestingPageState extends State<BacktestingPage> {
     );
   }
 
+// app bar for the page
   PreferredSizeWidget _buildAppBar({required bool isMobile}) {
     return AppBar(
       backgroundColor: AppColors.surface,
@@ -214,8 +217,11 @@ class _BacktestingPageState extends State<BacktestingPage> {
     );
   }
 
-  Widget _buildDrawer() => Drawer(backgroundColor: AppColors.surface, child: SafeArea(child: _DrawerContent()));
+  Widget _buildDrawer() {
+    return Drawer(backgroundColor: AppColors.surface, child: SafeArea(child: _DrawerContent()));
+  } 
 
+// main content of the page
   Widget _buildContent(BuildContext context, {required bool isMobile}) {
     final w = MediaQuery.of(context).size.width;
     final hPad = isMobile ? 12.0 : (w < 1024 ? 20.0 : 28.0);
@@ -489,6 +495,7 @@ class _DrawerLogoWidget extends StatelessWidget {
   );
 }
 
+// breadcrumb for the page static text
 class _Breadcrumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(

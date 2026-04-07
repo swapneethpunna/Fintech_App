@@ -52,6 +52,8 @@ class LegModel {
   );
 }
 
+
+// completed state of the form in the backtesting page
 class BacktestFormModel {
   // ── Top bar ─────────────────────────────────────────────
   String symbol      = 'NIFTY';
@@ -59,7 +61,7 @@ class BacktestFormModel {
   String timeframe   = '5 Mins';
 
   // Derived
-  int get lotSize            => AppData.lotSize(symbol);
+  int get lotSize => AppData.lotSize(symbol);
   List<String> get instruments => AppData.instruments(symbol);
 
   // ── Quick config ─────────────────────────────────────────
@@ -101,12 +103,12 @@ class BacktestFormModel {
 
   void selectSymbol(String s) {
     symbol = s;
-    // Reset leg quantities and instruments when symbol changes
     final inst = instruments;
     for (final leg in entryLegs) {
       leg.quantity   = lotSize;
       if (!inst.contains(leg.instrument)) leg.instrument = inst.first;
     }
+    // Reset leg quantities and instruments when symbol changes
     for (final leg in exitLegs) {
       leg.quantity   = lotSize;
       if (!inst.contains(leg.instrument)) leg.instrument = inst.first;

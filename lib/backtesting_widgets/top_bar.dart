@@ -62,7 +62,6 @@ class _TopBarState extends State<TopBar> {
   }
 }
 
-
 class _TopBarContent extends StatelessWidget {
   final TextEditingController ctrl;
   final BacktestFormModel form;
@@ -83,7 +82,6 @@ class _TopBarContent extends StatelessWidget {
       runSpacing: 12,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        // 🔍 Symbol (responsive width)
         ConstrainedBox(
           constraints: const BoxConstraints(
             minWidth: 220,
@@ -133,7 +131,7 @@ class _TopBarContent extends StatelessWidget {
 }
 
 // ───────────────────────────────────────────────────────────────
-// 🔍 SYMBOL FIELD
+// search SYMBOL FIELD
 // ───────────────────────────────────────────────────────────────
 
 class _SymbolField extends StatelessWidget {
@@ -226,7 +224,7 @@ class _SymbolField extends StatelessWidget {
 }
 
 // ───────────────────────────────────────────────────────────────
-// 📦 LOT BADGE
+// LOT BADGE
 // ───────────────────────────────────────────────────────────────
 
 class _LotBadge extends StatelessWidget {
@@ -258,7 +256,7 @@ class _LotBadge extends StatelessWidget {
 }
 
 // ───────────────────────────────────────────────────────────────
-// 🔁 MODE TOGGLE
+// MODE TOGGLE \ — toggle between intraday and positional modes
 // ───────────────────────────────────────────────────────────────
 
 class _ModeToggle extends StatelessWidget {
@@ -300,9 +298,7 @@ class _ModeToggle extends StatelessWidget {
                         style: GoogleFonts.dmSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: sel
-                              ? Colors.white
-                              : AppColors.textSecondary,
+                          color: sel ? Colors.white : AppColors.textSecondary,
                         ),
                       ),
                     ),
@@ -316,7 +312,7 @@ class _ModeToggle extends StatelessWidget {
 }
 
 // ───────────────────────────────────────────────────────────────
-// ⏱ TIMEFRAME
+// TIMEFRAME
 // ───────────────────────────────────────────────────────────────
 
 class _TimeframeDropdown extends StatelessWidget {
@@ -338,26 +334,27 @@ class _TimeframeDropdown extends StatelessWidget {
           const SizedBox(width: 6),
           Flexible(
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.border),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: DropdownButton<String>(
-                value: selected,
-                underline: const SizedBox(),
-                isDense: true,
-                style: GoogleFonts.dmSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary),
-                items: AppData.timeframes
-                    .map((t) =>
-                        DropdownMenuItem(value: t, child: Text(t)))
-                    .toList(),
-                onChanged: (v) => v != null ? onChanged(v) : null,
-              ),
+                  value: selected,
+                  underline: const SizedBox(),
+                  isDense: true,
+                  style: GoogleFonts.dmSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary),
+                  items: AppData.timeframes
+                      .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) {
+                      onChanged(v);
+                    }
+                  }),
             ),
           ),
         ],

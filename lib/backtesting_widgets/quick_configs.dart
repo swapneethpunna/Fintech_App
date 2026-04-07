@@ -4,7 +4,7 @@ import 'package:backtesting_app/utils/form_state_data.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Replace with SVG/icons later if needed
+// We can Replace with SVG/icons later if needed
 const _icons = ['📈', '📊', '🔵', '📉', '📈'];
 
 class QuickConfigsSection extends StatelessWidget {

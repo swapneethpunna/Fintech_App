@@ -78,7 +78,6 @@ class ConditionRowData {
 
   /// Builds the comma-separated string expected by the API.
   /// Format: "Indicator,val1,val2,val3,Operator,CompareTo,AND"
-  /// Values that are 0 / empty are omitted gracefully.
   String toApiString({String conjunction = 'AND'}) {
     final parts = <String>[indicator];
     if (val1 != 0) parts.add(_fmtNum(val1));
@@ -157,6 +156,7 @@ class _EntryConditionsSectionState extends State<EntryConditionsSection> {
     _fetchForRow(0, 'EMA');
   }
 
+// fetches the technical params for the indicator
   Future<void> _fetchForRow(int index, String indicator) async {
     if (index >= _rows.length) return;
     setState(() {
@@ -224,10 +224,10 @@ class _EntryConditionsSectionState extends State<EntryConditionsSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Header ─────────────────────────────────────
               LayoutBuilder(
                 builder: (context, constraints) {
                   final isSmall = constraints.maxWidth < 600;
+                  // if the screen is small, wrap the controls in a row header
                   if (isSmall) {
                     return Wrap(
                       alignment: WrapAlignment.spaceBetween,
@@ -235,7 +235,6 @@ class _EntryConditionsSectionState extends State<EntryConditionsSection> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        // Left section (icon + title + count)
                         Wrap(
                           spacing: 6,
                           crossAxisAlignment: WrapCrossAlignment.center,
@@ -637,28 +636,7 @@ class _ApiConditionRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: accentColor.withOpacity(0.25)),
       ),
-      child: LayoutBuilder(builder: (ctx, constraints) {
-        if (constraints.maxWidth >= 700) {
-          return _WideLayout(
-            before: before,
-            compareOptions: compareOptions,
-            selectedIndicator: selectedIndicator,
-            selectedOperator: selectedOperator,
-            selectedCompare: selectedCompare,
-            val1: val1,
-            val2: val2,
-            val3: val3,
-            canDelete: canDelete,
-            onIndicatorChanged: onIndicatorChanged,
-            onOperatorChanged: onOperatorChanged,
-            onCompareChanged: onCompareChanged,
-            onVal1Changed: onVal1Changed,
-            onVal2Changed: onVal2Changed,
-            onVal3Changed: onVal3Changed,
-            onDelete: onDelete,
-          );
-        }
-        return _NarrowLayout(
+      child: EntrySectionInnerCardItems(
           before: before,
           compareOptions: compareOptions,
           selectedIndicator: selectedIndicator,
@@ -675,134 +653,133 @@ class _ApiConditionRow extends StatelessWidget {
           onVal2Changed: onVal2Changed,
           onVal3Changed: onVal3Changed,
           onDelete: onDelete,
-        );
-      }),
+        )
     );
   }
 }
 
-// ── Wide layout (≥ 700px) ────────────────────────────────────────
-class _WideLayout extends StatelessWidget {
-  final After before;
-  final List<String> compareOptions;
-  final String selectedIndicator;
-  final String selectedOperator;
-  final String? selectedCompare;
-  final double val1, val2, val3;
-  final bool canDelete;
-  final ValueChanged<String> onIndicatorChanged;
-  final ValueChanged<String> onOperatorChanged;
-  final ValueChanged<String> onCompareChanged;
-  final ValueChanged<double> onVal1Changed;
-  final ValueChanged<double> onVal2Changed;
-  final ValueChanged<double> onVal3Changed;
-  final VoidCallback onDelete;
+// // ── Wide layout (≥ 700px) ────────────────────────────────────────
+// class _WideLayout extends StatelessWidget {
+//   final After before;
+//   final List<String> compareOptions;
+//   final String selectedIndicator;
+//   final String selectedOperator;
+//   final String? selectedCompare;
+//   final double val1, val2, val3;
+//   final bool canDelete;
+//   final ValueChanged<String> onIndicatorChanged;
+//   final ValueChanged<String> onOperatorChanged;
+//   final ValueChanged<String> onCompareChanged;
+//   final ValueChanged<double> onVal1Changed;
+//   final ValueChanged<double> onVal2Changed;
+//   final ValueChanged<double> onVal3Changed;
+//   final VoidCallback onDelete;
 
-  const _WideLayout({
-    required this.before,
-    required this.compareOptions,
-    required this.selectedIndicator,
-    required this.selectedOperator,
-    required this.selectedCompare,
-    required this.val1,
-    required this.val2,
-    required this.val3,
-    required this.canDelete,
-    required this.onIndicatorChanged,
-    required this.onOperatorChanged,
-    required this.onCompareChanged,
-    required this.onVal1Changed,
-    required this.onVal2Changed,
-    required this.onVal3Changed,
-    required this.onDelete,
-  });
+//   const _WideLayout({
+//     required this.before,
+//     required this.compareOptions,
+//     required this.selectedIndicator,
+//     required this.selectedOperator,
+//     required this.selectedCompare,
+//     required this.val1,
+//     required this.val2,
+//     required this.val3,
+//     required this.canDelete,
+//     required this.onIndicatorChanged,
+//     required this.onOperatorChanged,
+//     required this.onCompareChanged,
+//     required this.onVal1Changed,
+//     required this.onVal2Changed,
+//     required this.onVal3Changed,
+//     required this.onDelete,
+//   });
 
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Labels
-          Row(children: [
-            const SizedBox(width: 190, child: FieldLabel('INDICATOR')),
-            if (before.aLabel1.isNotEmpty) ...[
-              const SizedBox(width: 10),
-              SizedBox(
-                  width: 140, child: FieldLabel(before.aLabel1.toUpperCase())),
-            ],
-            if (before.aLabel2.isNotEmpty) ...[
-              const SizedBox(width: 10),
-              SizedBox(
-                  width: 140, child: FieldLabel(before.aLabel2.toUpperCase())),
-            ],
-            if (before.aLabel3.isNotEmpty) ...[
-              const SizedBox(width: 10),
-              SizedBox(
-                  width: 140, child: FieldLabel(before.aLabel3.toUpperCase())),
-            ],
-            const SizedBox(width: 10),
-            const SizedBox(width: 190, child: FieldLabel('OPERATOR')),
-            const SizedBox(width: 10),
-            const SizedBox(width: 160, child: FieldLabel('COMPARE TO')),
-          ]),
-          const SizedBox(height: 6),
-          // Controls
-          Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            _StyledDd(
-              value: selectedIndicator,
-              items: _kIndicators,
-              width: 190,
-              onChanged: (v) {
-                if (v != null) onIndicatorChanged(v);
-              },
-            ),
-            if (before.aLabel1.isNotEmpty) ...[
-              const SizedBox(width: 10),
-              _DoubleStepper(value: val1, width: 140, onChanged: onVal1Changed),
-            ],
-            if (before.aLabel2.isNotEmpty) ...[
-              const SizedBox(width: 10),
-              _DoubleStepper(value: val2, width: 140, onChanged: onVal2Changed),
-            ],
-            if (before.aLabel3.isNotEmpty) ...[
-              const SizedBox(width: 10),
-              _DoubleStepper(value: val3, width: 140, onChanged: onVal3Changed),
-            ],
-            const SizedBox(width: 10),
-            _StyledDd(
-              value: selectedOperator,
-              items: _kOperators,
-              width: 190,
-              onChanged: (v) {
-                if (v != null) onOperatorChanged(v);
-              },
-            ),
-            const SizedBox(width: 10),
-            _StyledDd(
-              value: compareOptions.contains(selectedCompare)
-                  ? selectedCompare!
-                  : (compareOptions.isNotEmpty ? compareOptions.first : ''),
-              items: compareOptions,
-              width: 160,
-              onChanged: (v) {
-                if (v != null) onCompareChanged(v);
-              },
-            ),
-            if (canDelete) ...[
-              const SizedBox(width: 10),
-              _DeleteBtn(onTap: onDelete),
-            ],
-          ]),
-        ],
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return SingleChildScrollView(
+//       scrollDirection: Axis.horizontal,
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           // Labels
+//           Row(children: [
+//             const SizedBox(width: 190, child: FieldLabel('INDICATOR')),
+//             if (before.aLabel1.isNotEmpty) ...[
+//               const SizedBox(width: 10),
+//               SizedBox(
+//                   width: 140, child: FieldLabel(before.aLabel1.toUpperCase())),
+//             ],
+//             if (before.aLabel2.isNotEmpty) ...[
+//               const SizedBox(width: 10),
+//               SizedBox(
+//                   width: 140, child: FieldLabel(before.aLabel2.toUpperCase())),
+//             ],
+//             if (before.aLabel3.isNotEmpty) ...[
+//               const SizedBox(width: 10),
+//               SizedBox(
+//                   width: 140, child: FieldLabel(before.aLabel3.toUpperCase())),
+//             ],
+//             const SizedBox(width: 10),
+//             const SizedBox(width: 190, child: FieldLabel('OPERATOR')),
+//             const SizedBox(width: 10),
+//             const SizedBox(width: 160, child: FieldLabel('COMPARE TO')),
+//           ]),
+//           const SizedBox(height: 6),
+//           // Controls
+//           Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+//             _StyledDd(
+//               value: selectedIndicator,
+//               items: _kIndicators,
+//               width: 190,
+//               onChanged: (v) {
+//                 if (v != null) onIndicatorChanged(v);
+//               },
+//             ),
+//             if (before.aLabel1.isNotEmpty) ...[
+//               const SizedBox(width: 10),
+//               _DoubleStepper(value: val1, width: 140, onChanged: onVal1Changed),
+//             ],
+//             if (before.aLabel2.isNotEmpty) ...[
+//               const SizedBox(width: 10),
+//               _DoubleStepper(value: val2, width: 140, onChanged: onVal2Changed),
+//             ],
+//             if (before.aLabel3.isNotEmpty) ...[
+//               const SizedBox(width: 10),
+//               _DoubleStepper(value: val3, width: 140, onChanged: onVal3Changed),
+//             ],
+//             const SizedBox(width: 10),
+//             _StyledDd(
+//               value: selectedOperator,
+//               items: _kOperators,
+//               width: 190,
+//               onChanged: (v) {
+//                 if (v != null) onOperatorChanged(v);
+//               },
+//             ),
+//             const SizedBox(width: 10),
+//             _StyledDd(
+//               value: compareOptions.contains(selectedCompare)
+//                   ? selectedCompare!
+//                   : (compareOptions.isNotEmpty ? compareOptions.first : ''),
+//               items: compareOptions,
+//               width: 160,
+//               onChanged: (v) {
+//                 if (v != null) onCompareChanged(v);
+//               },
+//             ),
+//             if (canDelete) ...[
+//               const SizedBox(width: 10),
+//               _DeleteBtn(onTap: onDelete),
+//             ],
+//           ]),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
 // ── Narrow / wrap layout (< 700px) ──────────────────────────────
-class _NarrowLayout extends StatelessWidget {
+class EntrySectionInnerCardItems extends StatelessWidget {
   final After before;
   final List<String> compareOptions;
   final String selectedIndicator;
@@ -818,7 +795,7 @@ class _NarrowLayout extends StatelessWidget {
   final ValueChanged<double> onVal3Changed;
   final VoidCallback onDelete;
 
-  const _NarrowLayout({
+  const EntrySectionInnerCardItems({
     required this.before,
     required this.compareOptions,
     required this.selectedIndicator,

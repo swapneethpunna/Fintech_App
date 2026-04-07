@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-
 class BacktestResultSection extends StatefulWidget {
   final dynamic rawApiResponse;
   final DateTime fromDate;
@@ -727,29 +726,12 @@ class _TradeLogTabState extends State<_TradeLogTab> {
               : LayoutBuilder(builder: (ctx, constraints) {
                   final sz = _screenSize(constraints.maxWidth);
                   final cols = _colsFor(sz);
-                  final minTableWidth =
-                      cols.fold<double>(0, (sum, c) => sum + c.width);
-
-                  // Desktop: always stretch to fill available width (no scroll).
-                  // Mobile/tablet: scroll only when fixed widths exceed space.
-                  if (sz == _ScreenSize.desktop) {
-                    return _buildTable(
-                      paged,
-                      cols,
-                      sz,
-                      availableWidth: constraints.maxWidth,
-                    );
-                  }
-
-                  final needsScroll = minTableWidth > constraints.maxWidth;
-                  Widget table = _buildTable(paged, cols, sz);
-                  if (needsScroll) {
-                    table = SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SizedBox(width: minTableWidth, child: table),
-                    );
-                  }
-                  return table;
+                  return _buildTable(
+                    paged,
+                    cols,
+                    sz,
+                    availableWidth: constraints.maxWidth,
+                  );
                 }),
 
           const SizedBox(height: 14),
@@ -864,22 +846,12 @@ class _TradeLogTabState extends State<_TradeLogTab> {
         ),
       );
 
-  // ── table builder ────────────────────────────────────────────
-  // [availableWidth] is supplied only for desktop; when provided the columns
-  // stretch proportionally to fill the full row width.
   Widget _buildTable(List<Trade> rows, List<_ColDef> cols, _ScreenSize sz,
       {double? availableWidth}) {
     final colWidths = <int, TableColumnWidth>{};
 
-    if (sz == _ScreenSize.desktop && availableWidth != null) {
-      // Use the fixed widths as flex ratios so every column scales up together.
-      for (int i = 0; i < cols.length; i++) {
-        colWidths[i] = FlexColumnWidth(cols[i].width);
-      }
-    } else {
-      for (int i = 0; i < cols.length; i++) {
-        colWidths[i] = FixedColumnWidth(cols[i].width);
-      }
+    for (int i = 0; i < cols.length; i++) {
+      colWidths[i] = FlexColumnWidth(cols[i].width);
     }
 
     return Table(
@@ -887,11 +859,10 @@ class _TradeLogTabState extends State<_TradeLogTab> {
       border: TableBorder(
         horizontalInside:
             BorderSide(color: AppColors.border.withValues(alpha: 0.7)),
-        top: BorderSide(color: AppColors.border),
-        bottom: BorderSide(color: AppColors.border),
+        top: const BorderSide(color: AppColors.border),
+        bottom: const BorderSide(color: AppColors.border),
       ),
       children: [
-        // ── Header row ──────────────────────────────────────────
         TableRow(
           decoration: const BoxDecoration(color: Color(0xFFF8F8F8)),
           children: cols
@@ -907,8 +878,6 @@ class _TradeLogTabState extends State<_TradeLogTab> {
                   ))
               .toList(),
         ),
-
-        // ── Data rows ────────────────────────────────────────────
         ...rows.asMap().entries.map((entry) {
           final i = entry.key;
           final t = entry.value;
@@ -919,7 +888,6 @@ class _TradeLogTabState extends State<_TradeLogTab> {
               : t.pL.toStringAsFixed(2);
           final seqNo = (_currentPage - 1) * _perPage + i + 1;
 
-          // Build cells according to which columns are visible
           final cells = cols.map((c) {
             switch (c.header) {
               case 'SEQ':
@@ -977,46 +945,50 @@ class _TradeLogTabState extends State<_TradeLogTab> {
     Color? color,
     double fontSize = 12,
     FontWeight fontWeight = FontWeight.w400,
-  }) =>
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        child: Text(
-          text,
-          style: GoogleFonts.dmSans(
-            fontSize: fontSize,
-            fontWeight: fontWeight,
-            color: color ?? AppColors.textPrimary,
-          ),
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      child: Text(
+        text,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.dmSans(
+          fontSize: fontSize,
+          fontWeight: fontWeight,
+          color: color ?? AppColors.textPrimary,
         ),
-      );
+      ),
+    );
+  }
 
-  Widget _directionCell(bool isSell) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
+  Widget _directionCell(bool isSell) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: isSell
+              ? AppColors.error.withOpacity(0.1)
+              : AppColors.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
             color: isSell
-                ? AppColors.error.withOpacity(0.1)
-                : AppColors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-              color: isSell
-                  ? AppColors.error.withOpacity(0.4)
-                  : AppColors.primary.withOpacity(0.4),
-            ),
+                ? AppColors.error.withOpacity(0.4)
+                : AppColors.primary.withOpacity(0.4),
           ),
-          child: Center(
-            child: Text(
-              isSell ? 'SELL' : 'BUY',
-              style: GoogleFonts.dmSans(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: isSell ? AppColors.error : AppColors.primary,
-              ),
+        ),
+        child: Center(
+          child: Text(
+            isSell ? 'SELL' : 'BUY',
+            style: GoogleFonts.dmSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: isSell ? AppColors.error : AppColors.primary,
             ),
           ),
         ),
-      );
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1153,6 +1125,7 @@ class _PgItem {
   factory _PgItem.page(int p, bool selected, VoidCallback onTap) =>
       _PgItem._(label: p, onTap: onTap, isSelected: selected);
 }
+
 // ─────────────────────────────────────────────────────────────────
 //  Export button
 // ─────────────────────────────────────────────────────────────────
