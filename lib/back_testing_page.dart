@@ -48,31 +48,35 @@ class _BacktestingPageState extends State<BacktestingPage> {
     final timeFrame = tfMap[f.timeframe] ?? '5';
     String fmtDate(DateTime d) =>
         '${d.year}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
-
+ 
     final entryParams = f.entryLegs.map((leg) => {
       'Symbol': f.symbol, 'Instrument': leg.instrument,
       'BuySell': leg.buySell == 'B' ? 'BUY' : 'SELL',
       'Qty': leg.quantity.toString(), 'StrikeType': leg.strike,
-      'Type': 'Pts', 'Tgt': f.target ?? '0', 'SL': f.stopLoss ?? '0',
+      'Type': leg.type == '%' ? 'Percentage' : 'Value',
+      'Tgt': leg.target.isEmpty ? '0' : leg.target,
+      'SL': leg.stopLoss.isEmpty ? '0' : leg.stopLoss,
       'TrailTGT': '0', 'TrailSL': '0',
     }).toList();
-
+ 
     final entryReverse = f.entryLegs.map((leg) => {
       'Symbol': f.symbol, 'Instrument': leg.instrument,
       'BuySell': leg.buySell == 'B' ? 'SELL' : 'BUY',
       'Qty': leg.quantity.toString(), 'StrikeType': leg.strike,
-      'Type': 'Pts', 'Tgt': f.target ?? '0', 'SL': f.stopLoss ?? '0',
+      'Type': leg.type == '%' ? 'Percentage' : 'Value',
+      'Tgt': leg.target.isEmpty ? '0' : leg.target,
+      'SL': leg.stopLoss.isEmpty ? '0' : leg.stopLoss,
       'TrailTGT': '0', 'TrailSL': '0',
     }).toList();
-
+ 
     final techEntry = _entryConditions.isNotEmpty
         ? _entryConditions.map((c) => {'value': c.toApiString(), 'TimeFrame': timeFrame}).toList()
         : [{'value': 'Close,Greater Than ( > ),Super Trend,10,3,AND', 'TimeFrame': timeFrame}];
-
+ 
     final techExit = _exitConditions.isNotEmpty
         ? _exitConditions.map((c) => {'value': c.toApiString(), 'TimeFrame': timeFrame}).toList()
         : [{'value': 'Close,Less Than ( < ),Super Trend,10,3,AND', 'TimeFrame': timeFrame}];
-
+ 
     final days = f.days;
     return {
       'validation': '20251217224718174', 'Tabname': 'AT_Backtest', 'Request': 'ADD',

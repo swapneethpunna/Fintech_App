@@ -36,12 +36,18 @@ class LegModel {
   String instrument;
   String strike;
   int quantity;
+  String type;      // 'Pts' or '%'
+  String target;
+  String stopLoss;
 
   LegModel({
     this.buySell    = 'B',
     this.instrument = 'CE',
     this.strike     = 'ATM',
     this.quantity   = 65,
+    this.type       = 'Pts',
+    this.target     = '',
+    this.stopLoss   = '',
   });
 
   LegModel clone() => LegModel(
@@ -49,6 +55,9 @@ class LegModel {
     instrument: instrument,
     strike: strike,
     quantity: quantity,
+    type: type,
+    target: target,
+    stopLoss: stopLoss,
   );
 }
 

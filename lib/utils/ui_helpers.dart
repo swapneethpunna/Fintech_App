@@ -296,14 +296,17 @@ class SmallTextBtn extends StatelessWidget {
     );
 
     if (outlined) {
-      return Container(
-       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7FAF7),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.textHint.withOpacity(0.30)),
-      ),
-        child: child,
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF7FAF7),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.textHint.withOpacity(0.30)),
+        ),
+          child: child,
+        ),
       );
     }
 

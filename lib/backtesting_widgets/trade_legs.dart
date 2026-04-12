@@ -173,7 +173,7 @@ class _LegCard extends StatelessWidget {
 }
 
 // ── Single leg row ───────────────────────────────────────────────
-class _LegRow extends StatelessWidget {
+class _LegRow extends StatefulWidget {
   final LegModel leg;
   final List<String> instruments;
   final bool canDelete;
@@ -181,7 +181,7 @@ class _LegRow extends StatelessWidget {
   final VoidCallback onDecrement;
   final VoidCallback onDelete;
   final VoidCallback onChanged;
-
+ 
   const _LegRow({
     required this.leg,
     required this.instruments,
@@ -191,135 +191,29 @@ class _LegRow extends StatelessWidget {
     required this.onChanged,
     this.canDelete = false,
   });
-
+ 
   @override
-  Widget build(BuildContext context) {
-    return Wrap(
-          spacing: 12,
-          runSpacing: 10,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            // Buy / Sell
-            _fieldWrapper(
-              label: 'BUY/SELL',
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: ['B', 'S'].map((side) {
-                  final sel = leg.buySell == side;
-                  return GestureDetector(
-                    onTap: () {
-                      leg.buySell = side;
-                      onChanged();
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      width: 38,
-                      height: 38,
-                      margin: const EdgeInsets.only(right: 4),
-                      decoration: BoxDecoration(
-                        color: sel
-                            ? (side == 'B' ? Colors.green : Colors.red)
-                            : AppColors.surface,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: side == 'B' ? Colors.green : Colors.red,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          side,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: sel
-                                ? Colors.white
-                                : (side == 'B'
-                                    ? Colors.green
-                                    : Colors.red),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-
-            // Instrument
-            _fieldWrapper(
-              label:  'INSTRUMENT' ,
-              child: SizedBox(
-                width:  140,
-                child: StyledDropdown<String>(
-                  value: instruments.contains(leg.instrument)
-                      ? leg.instrument
-                      : instruments.first,
-                  items: instruments,
-                  onChanged: (v) {
-                    if (v != null) {
-                      leg.instrument = v;
-                      onChanged();
-                    }
-                  },
-                ),
-              ),
-            ),
-
-            // Strike
-            _fieldWrapper(
-              label:  'STRIKE' ,
-              child: SizedBox(
-                width:  130,
-                child: StyledDropdown<String>(
-                  value: AppData.strikes.contains(leg.strike)
-                      ? leg.strike
-                      : AppData.strikes.first,
-                  items: AppData.strikes,
-                  onChanged: (v) {
-                    if (v != null) {
-                      leg.strike = v;
-                      onChanged();
-                    }
-                  },
-                ),
-              ),
-            ),
-
-            // Qty
-            _fieldWrapper(
-              label:  'QTY',
-              child: _QtyStepper(
-                qty: leg.quantity,
-                onIncrement: onIncrement,
-                onDecrement: onDecrement,
-              ),
-            ),
-
-            // Delete
-            if (canDelete)
-              _fieldWrapper(
-                label: 'DELETE' ,
-                child: InkWell(
-                  onTap: onDelete,
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      size: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
+  State<_LegRow> createState() => _LegRowState();
+}
+ 
+class _LegRowState extends State<_LegRow> {
+  late final TextEditingController _targetCtrl;
+  late final TextEditingController _slCtrl;
+ 
+  @override
+  void initState() {
+    super.initState();
+    _targetCtrl = TextEditingController(text: widget.leg.target);
+    _slCtrl     = TextEditingController(text: widget.leg.stopLoss);
   }
-
+ 
+  @override
+  void dispose() {
+    _targetCtrl.dispose();
+    _slCtrl.dispose();
+    super.dispose();
+  }
+ 
   Widget _fieldWrapper({String? label, required Widget child}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,6 +234,216 @@ class _LegRow extends StatelessWidget {
       ],
     );
   }
+ 
+  Widget _numTextField({
+    required TextEditingController controller,
+    required ValueChanged<String> onChanged,
+  }) {
+    return SizedBox(
+      width: 100,
+      height: 36,
+      child: TextField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w500),
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5),
+          ),
+          filled: true,
+          fillColor: AppColors.surface,
+        ),
+        onChanged: onChanged,
+      ),
+    );
+  }
+ 
+  @override
+  Widget build(BuildContext context) {
+    final leg = widget.leg;
+    return Wrap(
+      spacing: 12,
+      runSpacing: 10,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        // Buy / Sell
+        _fieldWrapper(
+          label: 'BUY/SELL',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: ['B', 'S'].map((side) {
+              final sel = leg.buySell == side;
+              return GestureDetector(
+                onTap: () {
+                  leg.buySell = side;
+                  widget.onChanged();
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  width: 38,
+                  height: 38,
+                  margin: const EdgeInsets.only(right: 4),
+                  decoration: BoxDecoration(
+                    color: sel
+                        ? (side == 'B' ? Colors.green : Colors.red)
+                        : AppColors.surface,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: side == 'B' ? Colors.green : Colors.red,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      side,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: sel
+                            ? Colors.white
+                            : (side == 'B' ? Colors.green : Colors.red),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+ 
+        // Instrument
+        _fieldWrapper(
+          label: 'INSTRUMENT',
+          child: SizedBox(
+            width: 140,
+            child: StyledDropdown<String>(
+              value: widget.instruments.contains(leg.instrument)
+                  ? leg.instrument
+                  : widget.instruments.first,
+              items: widget.instruments,
+              onChanged: (v) {
+                if (v != null) {
+                  leg.instrument = v;
+                  widget.onChanged();
+                }
+              },
+            ),
+          ),
+        ),
+ 
+        // Strike
+        _fieldWrapper(
+          label: 'STRIKE',
+          child: SizedBox(
+            width: 130,
+            child: StyledDropdown<String>(
+              value: AppData.strikes.contains(leg.strike)
+                  ? leg.strike
+                  : AppData.strikes.first,
+              items: AppData.strikes,
+              onChanged: (v) {
+                if (v != null) {
+                  leg.strike = v;
+                  widget.onChanged();
+                }
+              },
+            ),
+          ),
+        ),
+ 
+        // Qty
+        _fieldWrapper(
+          label: 'QTY',
+          child: _QtyStepper(
+            qty: leg.quantity,
+            onIncrement: widget.onIncrement,
+            onDecrement: widget.onDecrement,
+          ),
+        ),
+
+        Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: _vDivider(),
+        ),
+        // Type
+        _fieldWrapper(
+          label: 'TYPE',
+          child: SizedBox(
+            width: 80,
+            child: StyledDropdown<String>(
+              value: leg.type,
+              items: const ['Pts', '%'],
+              onChanged: (v) {
+                if (v != null) {
+                  leg.type = v;
+                  widget.onChanged();
+                }
+              },
+            ),
+          ),
+        ),
+ 
+        // Target
+        _fieldWrapper(
+          label: 'TARGET',
+          child: _numTextField(
+            controller: _targetCtrl,
+            onChanged: (v) {
+              leg.target = v;
+              widget.onChanged();
+            },
+          ),
+        ),
+ 
+        // StopLoss
+        _fieldWrapper(
+          label: 'STOPLOSS',
+          child: _numTextField(
+            controller: _slCtrl,
+            onChanged: (v) {
+              leg.stopLoss = v;
+              widget.onChanged();
+            },
+          ),
+        ),
+ 
+        // Delete
+        if (widget.canDelete)
+          _fieldWrapper(
+            label: ' ',
+            child: InkWell(
+              onTap: widget.onDelete,
+              borderRadius: BorderRadius.circular(6),
+              child: Container(
+                width: 35,
+                height: 35,
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Icon(
+                  Icons.close,
+                  size: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+  Widget _vDivider() =>
+      Container(width: 1, height: 32, color: AppColors.border);
 }
 
 // ── Qty stepper ──────────────────────────────────────────────────

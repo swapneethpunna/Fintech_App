@@ -872,7 +872,7 @@ class EntrySectionInnerCardItems extends StatelessWidget {
                 onChanged: (v) {
                   if (v != null) onCompareChanged(v);
                 })),
-        if (canDelete) _DeleteBtn(onTap: onDelete),
+        if (canDelete) _labeled(' ',_DeleteBtn(onTap: onDelete)),
       ],
     );
   }
@@ -1004,6 +1004,8 @@ class _DeleteBtn extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(6),
         child: Container(
+          height: 35,
+          width: 35,
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(6),
