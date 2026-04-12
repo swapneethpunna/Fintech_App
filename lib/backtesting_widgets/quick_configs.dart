@@ -45,7 +45,7 @@ class QuickConfigsSection extends StatelessWidget {
             } else if (width < 1000) {
               cardWidth = (width / 2) - 12; // tablet (2 per row)
             } else if (width < 1400) {
-              cardWidth = (width / 3) - 12; // small desktop (3 per row)
+              cardWidth = (width / 5) - 12; // small desktop (3 per row)
             } else {
               cardWidth = (width / 5) - 12; // large desktop (4 per row)
             }

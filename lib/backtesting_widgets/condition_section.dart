@@ -278,6 +278,7 @@ class _EntryConditionsSectionState extends State<EntryConditionsSection> {
                         icon: Icons.refresh,
                         label: 'Reset',
                         onTap: _reset,
+                        outlined: true,
                       ),
                     ]);
                   }
@@ -344,15 +345,14 @@ class _EntryConditionsSectionState extends State<EntryConditionsSection> {
 
               // ── Bottom actions ──────────────────────────────
               Wrap(children: [
-                Padding(
-                  padding: const EdgeInsets.only(top:10, bottom:10),
-                  child: SmallTextBtn(
+               
+                  SmallTextBtn(
                     icon: Icons.add,
                     label: 'Add Condition',
                     onTap: _addRow,
                     outlined: true,
                   ),
-                ),
+               
                 const SizedBox(width: 10),
                 const _AddExitConditionsBtn(),
               ]),
@@ -490,6 +490,7 @@ class _ExitConditionsSectionState extends State<ExitConditionsSection> {
                     icon: Icons.refresh,
                     label: 'Reset',
                     onTap: _reset,
+                    outlined: true,
                   ),
                   Row(mainAxisSize: MainAxisSize.min, children: [
                     Checkbox(
@@ -628,13 +629,14 @@ class _ApiConditionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: MediaQuery.of(context).size.width,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: accentColor == Colors.red
             ? const Color(0xFFFFF8F8)
             : const Color(0xFFF7FAF7),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: accentColor.withOpacity(0.25)),
+        border: Border.all(color: AppColors.textHint.withOpacity(0.40)),
       ),
       child: EntrySectionInnerCardItems(
           before: before,
@@ -838,17 +840,17 @@ class EntrySectionInnerCardItems extends StatelessWidget {
         if (before.aLabel1.isNotEmpty)
           _labeled(
               before.aLabel1.toUpperCase(),
-              _DoubleStepper(
+              DoubleStepper(
                   value: val1, width: 130, onChanged: onVal1Changed)),
         if (before.aLabel2.isNotEmpty)
           _labeled(
               before.aLabel2.toUpperCase(),
-              _DoubleStepper(
+              DoubleStepper(
                   value: val2, width: 130, onChanged: onVal2Changed)),
         if (before.aLabel3.isNotEmpty)
           _labeled(
               before.aLabel3.toUpperCase(),
-              _DoubleStepper(
+              DoubleStepper(
                   value: val3, width: 130, onChanged: onVal3Changed)),
         _labeled(
             'OPERATOR',
@@ -961,6 +963,7 @@ class _StyledDd extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 36,
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
@@ -990,54 +993,7 @@ class _StyledDd extends StatelessWidget {
   }
 }
 
-class _DoubleStepper extends StatelessWidget {
-  final double value;
-  final double width;
-  final ValueChanged<double> onChanged;
 
-  const _DoubleStepper({
-    required this.value,
-    required this.width,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _btn(Icons.remove,
-              () => onChanged(double.parse((value - 0.01).toStringAsFixed(2)))),
-          Expanded(
-            child: Text(
-              value.toStringAsFixed(2),
-              textAlign: TextAlign.center,
-              style:
-                  GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w500),
-            ),
-          ),
-          _btn(Icons.add,
-              () => onChanged(double.parse((value + 0.01).toStringAsFixed(2)))),
-        ],
-      ),
-    );
-  }
-
-  Widget _btn(IconData icon, VoidCallback onTap) => InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
-          child: Icon(icon, size: 13, color: AppColors.textSecondary),
-        ),
-      );
-}
 
 class _DeleteBtn extends StatelessWidget {
   final VoidCallback onTap;

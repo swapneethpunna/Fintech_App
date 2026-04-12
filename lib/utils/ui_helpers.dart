@@ -43,24 +43,27 @@ class StyledDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget dd = Container(
+      height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: AppColors.surface,
         border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: DropdownButton<T>(
-        value: items.contains(value) ? value : items.first,
-        underline: const SizedBox(),
-        isDense: true,
-        isExpanded: width == null,
-        style: GoogleFonts.dmSans(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
+      child: Center(
+        child: DropdownButton<T>(
+          value: items.contains(value) ? value : items.first,
+          underline: const SizedBox(),
+          isDense: true,
+          isExpanded: width == null,
+          style: GoogleFonts.dmSans(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+          items: items.map((i) => DropdownMenuItem<T>(value: i, child: Text('$i'))).toList(),
+          onChanged: onChanged,
         ),
-        items: items.map((i) => DropdownMenuItem<T>(value: i, child: Text('$i'))).toList(),
-        onChanged: onChanged,
       ),
     );
     return width != null ? SizedBox(width: width, child: dd) : dd;
@@ -293,16 +296,13 @@ class SmallTextBtn extends StatelessWidget {
     );
 
     if (outlined) {
-      return OutlinedButton(
-        onPressed: onTap,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: color,
-          side: BorderSide(color: color.withOpacity(0.4)),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          textStyle: GoogleFonts.dmSans(fontSize: 12),
-        ),
+      return Container(
+       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7FAF7),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.textHint.withOpacity(0.30)),
+      ),
         child: child,
       );
     }
@@ -316,6 +316,67 @@ class SmallTextBtn extends StatelessWidget {
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
       child: child,
+    );
+  }
+}
+
+
+class DoubleStepper extends StatelessWidget {
+  final double value;
+  final double width;
+  final ValueChanged<double> onChanged;
+
+  const DoubleStepper({
+    required this.value,
+    required this.width,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+       width: width,
+      height: 36,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F6F8), // light grey background
+        border: Border.all(color: const Color(0xFFDADDE2)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _btn(Icons.remove,
+    () => onChanged(double.parse((value - 1).clamp(0, double.infinity).toStringAsFixed(2)))),
+              _divider(),
+          Expanded(
+            child: Text(
+              value.toString(),
+              textAlign: TextAlign.center,
+              style:
+                  GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w500),
+            ),
+          ),
+          _divider(),
+          _btn(Icons.add,
+              () => onChanged(double.parse((value + 1).toStringAsFixed(2)))),
+        ],
+      ),
+    );
+  }
+
+  Widget _btn(IconData icon, VoidCallback onTap) => InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 9),
+          child: Icon(icon, size: 13, color: AppColors.textSecondary),
+        ),
+      );
+
+      Widget _divider() {
+    return Container(
+      width: 1,
+      height: double.infinity,
+      color: const Color(0xFFDADDE2),
     );
   }
 }

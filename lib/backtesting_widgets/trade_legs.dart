@@ -124,10 +124,20 @@ class _LegCard extends StatelessWidget {
             const SizedBox(width: 8),
             CountChip('${legs.length} ${legs.length == 1 ? "LEG" : "LEGS"}'),
             const Spacer(),
-            SmallTextBtn(icon: Icons.refresh, label: 'Reset', onTap: onReset),
+            SmallTextBtn(icon: Icons.refresh, label: 'Reset', onTap: onReset, outlined: true),
           ]),
           const SizedBox(height: 14),
-
+          Container(
+             width: MediaQuery.of(context).size.width,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color:const Color(0xFFF7FAF7),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.textHint.withOpacity(0.40)),
+      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
           // Empty state
           if (legs.isEmpty)
             _EmptyLegs(onAdd: onAddLeg)
@@ -145,7 +155,11 @@ class _LegCard extends StatelessWidget {
               ),
             )),
           ],
-          const SizedBox(height: 4),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 10),
           SmallTextBtn(
             icon: Icons.add,
             label: 'Add Leg',
@@ -338,6 +352,7 @@ class _QtyStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
+    height: 36,
     decoration: BoxDecoration(
       border: Border.all(color: AppColors.border),
       borderRadius: BorderRadius.circular(6),
@@ -346,12 +361,14 @@ class _QtyStepper extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _btn(Icons.remove, onDecrement),
+        _divider(),
         SizedBox(
           width: 52,
           child: Text('$qty',
             textAlign: TextAlign.center,
             style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600)),
         ),
+        _divider(),
         _btn(Icons.add, onIncrement),
       ],
     ),
@@ -364,6 +381,14 @@ class _QtyStepper extends StatelessWidget {
       child: Icon(icon, size: 13, color: AppColors.textSecondary),
     ),
   );
+
+        Widget _divider() {
+    return Container(
+      width: 1,
+      height: double.infinity,
+      color: const Color(0xFFDADDE2),
+    );
+  }
 }
 
 // ── Empty state ──────────────────────────────────────────────────
@@ -376,11 +401,6 @@ class _EmptyLegs extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.symmetric(vertical: 28),
     margin: const EdgeInsets.only(bottom: 10),
-    decoration: BoxDecoration(
-      color: const Color(0xFFFAFAFA),
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: AppColors.border),
-    ),
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [

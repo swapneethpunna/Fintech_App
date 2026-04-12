@@ -227,7 +227,7 @@ class _BacktestingPageState extends State<BacktestingPage> {
     final hPad = isMobile ? 12.0 : (w < 1024 ? 20.0 : 28.0);
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
+        constraints: const BoxConstraints(maxWidth: 1400),
         child: SingleChildScrollView(
           controller: _scrollController,
           padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 20),

@@ -159,98 +159,101 @@ class _TimingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // No. of times
-          const FieldLabel('NO. OF TIMES'),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          // ── NO OF TIMES + EXPIRY (wraps on small screens) ──
+          Wrap(
+            spacing: 20,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.end,
             children: [
-              _circleBtn(Icons.remove, () {
-                if (form.noOfTimes > 0) form.noOfTimes--;
-                onChanged();
-              }),
-              SizedBox(
-                width: 44,
-                child: Text('${form.noOfTimes}',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.dmSans(
-                        fontSize: 13, fontWeight: FontWeight.w600)),
+              _labeled(
+                "NO OF TIMES",
+                DoubleStepper(
+                  value: double.parse(form.noOfTimes.toString()),
+                  width: 120,
+                  onChanged: (v) {
+                    form.noOfTimes = v.toInt();
+                    onChanged();
+                  },
+                ),
               ),
-              _circleBtn(Icons.add, () {
-                form.noOfTimes++;
-                onChanged();
-              }),
+              _labeled(
+                "EXPIRY",
+                _SegmentToggle(
+                  options: const ['Weekly', 'Monthly'],
+                  selected: form.expiry,
+                  onChanged: (v) {
+                    form.expiry = v;
+                    onChanged();
+                  },
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 14),
-          // Expiry
-          const FieldLabel('EXPIRY'),
-          const SizedBox(height: 6),
-          _SegmentToggle(
-            options: const ['Weekly', 'Monthly'],
-            selected: form.expiry,
-            onChanged: (v) {
-              form.expiry = v;
-              onChanged();
-            },
+
+          const SizedBox(height: 10),
+
+          // ── ENTRY TIME + EXIT TIME (wraps on small screens) ──
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            children: [
+              SizedBox(
+                width: 160,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const FieldLabel('ENTRY TIME'),
+                    const SizedBox(height: 6),
+                    _TimePicker(
+                      value: form.entryTime,
+                      onChanged: (t) {
+                        form.entryTime = t;
+                        onChanged();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                width: 160,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const FieldLabel('EXIT TIME'),
+                    const SizedBox(height: 6),
+                    _TimePicker(
+                      value: form.exitTime,
+                      onChanged: (t) {
+                        form.exitTime = t;
+                        onChanged();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
+
           const SizedBox(height: 14),
-          // Entry / Exit time
-          Row(children: [
-            Expanded(
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const FieldLabel('ENTRY TIME'),
-                const SizedBox(height: 6),
-                _TimePicker(
-                  value: form.entryTime,
-                  onChanged: (t) {
-                    form.entryTime = t;
-                    onChanged();
-                  },
-                ),
-              ],
-            )),
-            const SizedBox(width: 12),
-            Expanded(
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const FieldLabel('EXIT TIME'),
-                const SizedBox(height: 6),
-                _TimePicker(
-                  value: form.exitTime,
-                  onChanged: (t) {
-                    form.exitTime = t;
-                    onChanged();
-                  },
-                ),
-              ],
-            )),
-          ]),
-          const SizedBox(height: 14),
-          // Days
-          const FieldLabel('DAY'),
-          const SizedBox(height: 8),
-          _DaySelector(days: form.days, onChanged: onChanged),
+
+          // ── DAY selector ──
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const FieldLabel('DAY'),
+              const SizedBox(height: 6),
+              _DaySelector(days: form.days, onChanged: onChanged),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _circleBtn(IconData icon, VoidCallback onTap) => InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.border),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Icon(icon, size: 14, color: AppColors.textSecondary),
-        ),
+  Widget _labeled(String label, Widget child) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [FieldLabel(label), const SizedBox(height: 4), child],
       );
 }
 
@@ -371,7 +374,6 @@ class _ParamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(10),
@@ -380,20 +382,35 @@ class _ParamCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                    color: iconBg, borderRadius: BorderRadius.circular(7)),
-                child: Icon(icon, size: 15, color: iconColor),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surface.withOpacity(0.5),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
+                ),
               ),
-              const SizedBox(width: 10),
-              Text(title,
-                  style: GoogleFonts.dmSans(
-                      fontSize: 15, fontWeight: FontWeight.w700)),
-            ]),
-            const SizedBox(height: 16),
-            child,
+              child: Row(children: [
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: iconBg,
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Icon(icon, size: 15, color: iconColor),
+                ),
+                const SizedBox(width: 10),
+                Text(title,
+                    style: GoogleFonts.dmSans(
+                        fontSize: 15, fontWeight: FontWeight.w700)),
+              ]),
+            ),
+            const Divider(height: 1, thickness: 1, color: AppColors.border),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: child,
+            ),
           ],
         ),
       );
@@ -411,30 +428,50 @@ class _SegmentToggle extends StatelessWidget {
       {required this.options, required this.selected, required this.onChanged});
 
   @override
-  Widget build(BuildContext context) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: options.map((o) {
-          final sel = o == selected;
-          return GestureDetector(
-            onTap: () => onChanged(o),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: sel ? AppColors.accent : AppColors.surface,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                    color: sel ? AppColors.accent : AppColors.border),
-              ),
-              child: Text(o,
+  Widget build(BuildContext context) => Container(
+        height: 37,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0F0F0),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: AppColors.border),
+        ),
+        padding: const EdgeInsets.all(3),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: options.map((o) {
+            final sel = o == selected;
+            return GestureDetector(
+              onTap: () => onChanged(o),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 84,
+                height: double.infinity,
+                decoration: BoxDecoration(
+                  color: sel ? AppColors.accent : Colors.transparent,
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: sel
+                      ? [
+                          BoxShadow(
+                            color: AppColors.accent.withOpacity(0.25),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  o,
                   style: GoogleFonts.dmSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: sel ? Colors.white : AppColors.textSecondary)),
-            ),
-          );
-        }).toList(),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: sel ? Colors.white : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       );
 }
 
@@ -464,7 +501,7 @@ class _DaySelector extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 color: sel ? AppColors.accent : AppColors.surface,
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                     color: sel ? AppColors.accent : AppColors.border),
               ),
@@ -489,7 +526,7 @@ class _DaySelector extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 9),
             decoration: BoxDecoration(
               color: AppColors.accent,
-              borderRadius: BorderRadius.circular(17),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Text('ALL',
                 style: GoogleFonts.dmSans(
@@ -581,9 +618,6 @@ class _TimePicker extends StatelessWidget {
       );
 }
 
-
-
-
 class _UnitToggle extends StatelessWidget {
   final bool inRupees;
   final ValueChanged<bool> onChanged;
@@ -665,7 +699,6 @@ class _Pill extends StatelessWidget {
   }
 }
 
-
 class _AmountField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
@@ -681,25 +714,33 @@ class _AmountField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.dmSans(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
-            color: AppColors.textHint,
+    return Container(
+         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceVariant,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.textHint.withOpacity(0.30)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.dmSans(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+              color: AppColors.textHint,
+            ),
           ),
-        ),
-        const SizedBox(height: 10),
-        _TextField(
-          controller: controller,
-          prefix: inRupees ? '₹' : '%',
-          onChanged: onValueChanged,
-        ),
-      ],
+          const SizedBox(height: 10),
+          _TextField(
+            controller: controller,
+            prefix: inRupees ? '₹' : '%',
+            onChanged: onValueChanged,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -717,52 +758,58 @@ class _TextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-      ],
-      style: GoogleFonts.dmSans(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
-      decoration: InputDecoration(
-        prefixText: '$prefix ',
-        prefixStyle: GoogleFonts.dmSans(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textSecondary,
-        ),
-        hintText: '0',
-        hintStyle: GoogleFonts.dmSans(
-          fontSize: 14,
-          color: AppColors.textHint,
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 10,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
-          borderSide: const BorderSide(
-            color: AppColors.borderFocus,
-            width: 1.5,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: SizedBox(
+        height: 36,
+        child: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+          ],
+          style: GoogleFonts.dmSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
           ),
+          decoration: InputDecoration(
+            prefixText: '$prefix ',
+            prefixStyle: GoogleFonts.dmSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+            hintText: '0',
+            hintStyle: GoogleFonts.dmSans(
+              fontSize: 14,
+              color: AppColors.textHint,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(7),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(7),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(7),
+              borderSide: const BorderSide(
+                color: AppColors.borderFocus,
+                width: 1.5,
+              ),
+            ),
+            filled: true,
+            fillColor: AppColors.surface,
+          ),
+          onChanged: onChanged,
         ),
-        filled: true,
-        fillColor: AppColors.surface,
       ),
-      onChanged: onChanged,
     );
   }
 }

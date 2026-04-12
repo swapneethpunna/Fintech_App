@@ -273,40 +273,43 @@ class _ModeToggle extends StatelessWidget {
               style: GoogleFonts.dmSans(
                   fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(width: 8),
-          Flexible(
-            child: Container(
+         Flexible(
+           child: Container(
+                 height: 38,
               decoration: BoxDecoration(
+                color: const Color(0xFFF0F0F0),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: AppColors.border),
-                borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: AppData.modes.map((m) {
-                  final sel = m == selected;
-                  return GestureDetector(
-                    onTap: () => onChanged(m),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: sel ? AppColors.accent : Colors.transparent,
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      child: Text(
-                        m,
-                        style: GoogleFonts.dmSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: sel ? Colors.white : AppColors.textSecondary,
+                 padding: const EdgeInsets.all(1),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: AppData.modes.map((m) {
+                    final sel = m == selected;
+                    return GestureDetector(
+                      onTap: () => onChanged(m),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: sel ? AppColors.accent : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          m,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: sel ? Colors.white : AppColors.textSecondary,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }).toList(),
+                    );
+                  }).toList(),
+                ),
               ),
-            ),
-          ),
+         ),
         ],
       );
 }
