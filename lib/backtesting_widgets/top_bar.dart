@@ -281,7 +281,7 @@ class _ModeToggle extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: AppColors.border),
               ),
-                 padding: const EdgeInsets.all(1),
+                 padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: AppData.modes.map((m) {

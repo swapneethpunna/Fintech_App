@@ -145,7 +145,7 @@ class _BacktestingPageState extends State<BacktestingPage> {
     final w = MediaQuery.of(context).size.width;
     final isMobile = w < 600;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.surface,
       appBar: _buildAppBar(isMobile: isMobile),
       drawer: isMobile ? _buildDrawer() : null,
       body: isMobile

@@ -66,6 +66,7 @@ class ConditionRowData {
   final double val1;
   final double val2;
   final double val3;
+  final String logic;
 
   const ConditionRowData({
     required this.indicator,
@@ -74,18 +75,19 @@ class ConditionRowData {
     required this.val1,
     required this.val2,
     required this.val3,
+    this.logic = 'AND',
   });
 
   /// Builds the comma-separated string expected by the API.
   /// Format: "Indicator,val1,val2,val3,Operator,CompareTo,AND"
-  String toApiString({String conjunction = 'AND'}) {
+  String toApiString() {
     final parts = <String>[indicator];
     if (val1 != 0) parts.add(_fmtNum(val1));
     if (val2 != 0) parts.add(_fmtNum(val2));
     if (val3 != 0) parts.add(_fmtNum(val3));
     parts.add(operator);
     if (compareTo != null && compareTo!.isNotEmpty) parts.add(compareTo!);
-    parts.add(conjunction);
+    parts.add(logic);
     return parts.join(',');
   }
 
@@ -106,6 +108,7 @@ class _RowState {
   double val1;
   double val2;
   double val3;
+  String logic;
 
   _RowState({
     this.selectedIndicator = 'EMA',
@@ -114,6 +117,7 @@ class _RowState {
     this.val1 = 0,
     this.val2 = 0,
     this.val3 = 0,
+    this.logic = 'AND',
   });
 
   ConditionRowData toData() => ConditionRowData(
@@ -123,6 +127,7 @@ class _RowState {
         val1: val1,
         val2: val2,
         val3: val3,
+        logic: logic ?? 'AND',
       );
 }
 
@@ -290,54 +295,69 @@ class _EntryConditionsSectionState extends State<EntryConditionsSection> {
               ...List.generate(_rows.length, (i) {
                 final row = _rows[i];
                 final loading = _loadingRows.contains(i);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: loading
-                      ? const _LoadingRow(accentColor: AppColors.primary)
-                      : row.error != null
-                          ? _ErrorRow(
-                              message: row.error!,
-                              accentColor: AppColors.primary)
-                          : row.data == null || row.data!.before.isEmpty
-                              ? const _EmptyRow(accentColor: AppColors.primary)
-                              : _ApiConditionRow(
-                                  accentColor: AppColors.primary,
-                                  before: row.data!.before.first,
-                                  compareOptions: row.data!.after
-                                      .map((e) => e.name)
-                                      .toList(),
-                                  selectedIndicator: row.selectedIndicator,
-                                  selectedOperator: row.selectedOperator,
-                                  selectedCompare: row.selectedCompare,
-                                  val1: row.val1,
-                                  val2: row.val2,
-                                  val3: row.val3,
-                                  canDelete: _rows.length > 1,
-                                  onIndicatorChanged: (v) => _fetchForRow(i, v),
-                                  onOperatorChanged: (v) {
-                                    setState(
-                                        () => _rows[i].selectedOperator = v);
-                                    _notify();
-                                  },
-                                  onCompareChanged: (v) {
-                                    setState(
-                                        () => _rows[i].selectedCompare = v);
-                                    _notify();
-                                  },
-                                  onVal1Changed: (v) {
-                                    setState(() => _rows[i].val1 = v);
-                                    _notify();
-                                  },
-                                  onVal2Changed: (v) {
-                                    setState(() => _rows[i].val2 = v);
-                                    _notify();
-                                  },
-                                  onVal3Changed: (v) {
-                                    setState(() => _rows[i].val3 = v);
-                                    _notify();
-                                  },
-                                  onDelete: () => _removeRow(i),
-                                ),
+                final isLast = i == _rows.length - 1;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: loading
+                          ? const _LoadingRow(accentColor: AppColors.primary)
+                          : row.error != null
+                              ? _ErrorRow(
+                                  message: row.error!,
+                                  accentColor: AppColors.primary)
+                              : row.data == null || row.data!.before.isEmpty
+                                  ? const _EmptyRow(
+                                      accentColor: AppColors.primary)
+                                  : _ApiConditionRow(
+                                      accentColor: AppColors.primary,
+                                      before: row.data!.before.first,
+                                      compareOptions: row.data!.after
+                                          .map((e) => e.name)
+                                          .toList(),
+                                      selectedIndicator: row.selectedIndicator,
+                                      selectedOperator: row.selectedOperator,
+                                      selectedCompare: row.selectedCompare,
+                                      val1: row.val1,
+                                      val2: row.val2,
+                                      val3: row.val3,
+                                      canDelete: _rows.length > 1,
+                                      showLogic: !isLast,
+                                      logic: row.logic ?? 'AND',
+                                      onLogicChanged: (v) {
+                                        setState(() => _rows[i].logic = v);
+                                        _notify();
+                                      },
+                                      onIndicatorChanged: (v) =>
+                                          _fetchForRow(i, v),
+                                      onOperatorChanged: (v) {
+                                        setState(() =>
+                                            _rows[i].selectedOperator = v);
+                                        _notify();
+                                      },
+                                      onCompareChanged: (v) {
+                                        setState(
+                                            () => _rows[i].selectedCompare = v);
+                                        _notify();
+                                      },
+                                      onVal1Changed: (v) {
+                                        setState(() => _rows[i].val1 = v);
+                                        _notify();
+                                      },
+                                      onVal2Changed: (v) {
+                                        setState(() => _rows[i].val2 = v);
+                                        _notify();
+                                      },
+                                      onVal3Changed: (v) {
+                                        setState(() => _rows[i].val3 = v);
+                                        _notify();
+                                      },
+                                      onDelete: () => _removeRow(i),
+                                    ),
+                    ),
+                    if (isLast) const SizedBox(height: 10),
+                  ],
                 );
               }),
 
@@ -345,14 +365,12 @@ class _EntryConditionsSectionState extends State<EntryConditionsSection> {
 
               // ── Bottom actions ──────────────────────────────
               Wrap(children: [
-               
-                  SmallTextBtn(
-                    icon: Icons.add,
-                    label: 'Add Condition',
-                    onTap: _addRow,
-                    outlined: true,
-                  ),
-               
+                SmallTextBtn(
+                  icon: Icons.add,
+                  label: 'Add Condition',
+                  onTap: _addRow,
+                  outlined: true,
+                ),
                 const SizedBox(width: 10),
                 const _AddExitConditionsBtn(),
               ]),
@@ -520,53 +538,67 @@ class _ExitConditionsSectionState extends State<ExitConditionsSection> {
               ...List.generate(_rows.length, (i) {
                 final row = _rows[i];
                 final loading = _loadingRows.contains(i);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: loading
-                      ? _LoadingRow(accentColor: Colors.red)
-                      : row.error != null
-                          ? _ErrorRow(
-                              message: row.error!, accentColor: Colors.red)
-                          : row.data == null || row.data!.before.isEmpty
-                              ? _EmptyRow(accentColor: Colors.red)
-                              : _ApiConditionRow(
-                                  accentColor: Colors.red,
-                                  before: row.data!.before.first,
-                                  compareOptions: row.data!.after
-                                      .map((e) => e.name)
-                                      .toList(),
-                                  selectedIndicator: row.selectedIndicator,
-                                  selectedOperator: row.selectedOperator,
-                                  selectedCompare: row.selectedCompare,
-                                  val1: row.val1,
-                                  val2: row.val2,
-                                  val3: row.val3,
-                                  canDelete: _rows.length > 1,
-                                  onIndicatorChanged: (v) => _fetchForRow(i, v),
-                                  onOperatorChanged: (v) {
-                                    setState(
-                                        () => _rows[i].selectedOperator = v);
-                                    _notify();
-                                  },
-                                  onCompareChanged: (v) {
-                                    setState(
-                                        () => _rows[i].selectedCompare = v);
-                                    _notify();
-                                  },
-                                  onVal1Changed: (v) {
-                                    setState(() => _rows[i].val1 = v);
-                                    _notify();
-                                  },
-                                  onVal2Changed: (v) {
-                                    setState(() => _rows[i].val2 = v);
-                                    _notify();
-                                  },
-                                  onVal3Changed: (v) {
-                                    setState(() => _rows[i].val3 = v);
-                                    _notify();
-                                  },
-                                  onDelete: () => _removeRow(i),
-                                ),
+                final isLast = i == _rows.length - 1;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: loading
+                          ? _LoadingRow(accentColor: Colors.red)
+                          : row.error != null
+                              ? _ErrorRow(
+                                  message: row.error!, accentColor: Colors.red)
+                              : row.data == null || row.data!.before.isEmpty
+                                  ? _EmptyRow(accentColor: Colors.red)
+                                  : _ApiConditionRow(
+                                      accentColor: Colors.red,
+                                      before: row.data!.before.first,
+                                      compareOptions: row.data!.after
+                                          .map((e) => e.name)
+                                          .toList(),
+                                      selectedIndicator: row.selectedIndicator,
+                                      selectedOperator: row.selectedOperator,
+                                      selectedCompare: row.selectedCompare,
+                                      val1: row.val1,
+                                      val2: row.val2,
+                                      val3: row.val3,
+                                      canDelete: _rows.length > 1,
+                                      showLogic: !isLast,
+                                      logic: row.logic ?? 'AND',
+                                      onLogicChanged: (v) {
+                                        setState(() => _rows[i].logic = v);
+                                        _notify();
+                                      },
+                                      onIndicatorChanged: (v) =>
+                                          _fetchForRow(i, v),
+                                      onOperatorChanged: (v) {
+                                        setState(() =>
+                                            _rows[i].selectedOperator = v);
+                                        _notify();
+                                      },
+                                      onCompareChanged: (v) {
+                                        setState(
+                                            () => _rows[i].selectedCompare = v);
+                                        _notify();
+                                      },
+                                      onVal1Changed: (v) {
+                                        setState(() => _rows[i].val1 = v);
+                                        _notify();
+                                      },
+                                      onVal2Changed: (v) {
+                                        setState(() => _rows[i].val2 = v);
+                                        _notify();
+                                      },
+                                      onVal3Changed: (v) {
+                                        setState(() => _rows[i].val3 = v);
+                                        _notify();
+                                      },
+                                      onDelete: () => _removeRow(i),
+                                    ),
+                    ),
+                    if (isLast) const SizedBox(height: 10),
+                  ],
                 );
               }),
 
@@ -598,6 +630,9 @@ class _ApiConditionRow extends StatelessWidget {
   final String? selectedCompare;
   final double val1, val2, val3;
   final bool canDelete;
+  final bool showLogic;
+  final String logic;
+  final ValueChanged<String> onLogicChanged;
   final ValueChanged<String> onIndicatorChanged;
   final ValueChanged<String> onOperatorChanged;
   final ValueChanged<String> onCompareChanged;
@@ -617,6 +652,9 @@ class _ApiConditionRow extends StatelessWidget {
     required this.val2,
     required this.val3,
     required this.canDelete,
+    this.showLogic = false,
+    this.logic = 'AND',
+    required this.onLogicChanged,
     required this.onIndicatorChanged,
     required this.onOperatorChanged,
     required this.onCompareChanged,
@@ -628,157 +666,42 @@ class _ApiConditionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: accentColor == Colors.red
-            ? const Color(0xFFFFF8F8)
-            : const Color(0xFFF7FAF7),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.textHint.withOpacity(0.40)),
-      ),
-      child: EntrySectionInnerCardItems(
-          before: before,
-          compareOptions: compareOptions,
-          selectedIndicator: selectedIndicator,
-          selectedOperator: selectedOperator,
-          selectedCompare: selectedCompare,
-          val1: val1,
-          val2: val2,
-          val3: val3,
-          canDelete: canDelete,
-          onIndicatorChanged: onIndicatorChanged,
-          onOperatorChanged: onOperatorChanged,
-          onCompareChanged: onCompareChanged,
-          onVal1Changed: onVal1Changed,
-          onVal2Changed: onVal2Changed,
-          onVal3Changed: onVal3Changed,
-          onDelete: onDelete,
-        )
+    return SectionCard(
+      leftBorderColor: accentColor,
+      child: Container(
+          width: MediaQuery.of(context).size.width,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: accentColor == Colors.red
+                ? const Color(0xFFFFF8F8)
+                : const Color(0xFFF7FAF7),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.textHint.withOpacity(0.40)),
+          ),
+          child: EntrySectionInnerCardItems(
+            before: before,
+            compareOptions: compareOptions,
+            selectedIndicator: selectedIndicator,
+            selectedOperator: selectedOperator,
+            selectedCompare: selectedCompare,
+            val1: val1,
+            val2: val2,
+            val3: val3,
+            canDelete: canDelete,
+            showLogic: showLogic,
+            logic: logic,
+            onLogicChanged: onLogicChanged,
+            onIndicatorChanged: onIndicatorChanged,
+            onOperatorChanged: onOperatorChanged,
+            onCompareChanged: onCompareChanged,
+            onVal1Changed: onVal1Changed,
+            onVal2Changed: onVal2Changed,
+            onVal3Changed: onVal3Changed,
+            onDelete: onDelete,
+          )),
     );
   }
 }
-
-// // ── Wide layout (≥ 700px) ────────────────────────────────────────
-// class _WideLayout extends StatelessWidget {
-//   final After before;
-//   final List<String> compareOptions;
-//   final String selectedIndicator;
-//   final String selectedOperator;
-//   final String? selectedCompare;
-//   final double val1, val2, val3;
-//   final bool canDelete;
-//   final ValueChanged<String> onIndicatorChanged;
-//   final ValueChanged<String> onOperatorChanged;
-//   final ValueChanged<String> onCompareChanged;
-//   final ValueChanged<double> onVal1Changed;
-//   final ValueChanged<double> onVal2Changed;
-//   final ValueChanged<double> onVal3Changed;
-//   final VoidCallback onDelete;
-
-//   const _WideLayout({
-//     required this.before,
-//     required this.compareOptions,
-//     required this.selectedIndicator,
-//     required this.selectedOperator,
-//     required this.selectedCompare,
-//     required this.val1,
-//     required this.val2,
-//     required this.val3,
-//     required this.canDelete,
-//     required this.onIndicatorChanged,
-//     required this.onOperatorChanged,
-//     required this.onCompareChanged,
-//     required this.onVal1Changed,
-//     required this.onVal2Changed,
-//     required this.onVal3Changed,
-//     required this.onDelete,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return SingleChildScrollView(
-//       scrollDirection: Axis.horizontal,
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           // Labels
-//           Row(children: [
-//             const SizedBox(width: 190, child: FieldLabel('INDICATOR')),
-//             if (before.aLabel1.isNotEmpty) ...[
-//               const SizedBox(width: 10),
-//               SizedBox(
-//                   width: 140, child: FieldLabel(before.aLabel1.toUpperCase())),
-//             ],
-//             if (before.aLabel2.isNotEmpty) ...[
-//               const SizedBox(width: 10),
-//               SizedBox(
-//                   width: 140, child: FieldLabel(before.aLabel2.toUpperCase())),
-//             ],
-//             if (before.aLabel3.isNotEmpty) ...[
-//               const SizedBox(width: 10),
-//               SizedBox(
-//                   width: 140, child: FieldLabel(before.aLabel3.toUpperCase())),
-//             ],
-//             const SizedBox(width: 10),
-//             const SizedBox(width: 190, child: FieldLabel('OPERATOR')),
-//             const SizedBox(width: 10),
-//             const SizedBox(width: 160, child: FieldLabel('COMPARE TO')),
-//           ]),
-//           const SizedBox(height: 6),
-//           // Controls
-//           Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-//             _StyledDd(
-//               value: selectedIndicator,
-//               items: _kIndicators,
-//               width: 190,
-//               onChanged: (v) {
-//                 if (v != null) onIndicatorChanged(v);
-//               },
-//             ),
-//             if (before.aLabel1.isNotEmpty) ...[
-//               const SizedBox(width: 10),
-//               _DoubleStepper(value: val1, width: 140, onChanged: onVal1Changed),
-//             ],
-//             if (before.aLabel2.isNotEmpty) ...[
-//               const SizedBox(width: 10),
-//               _DoubleStepper(value: val2, width: 140, onChanged: onVal2Changed),
-//             ],
-//             if (before.aLabel3.isNotEmpty) ...[
-//               const SizedBox(width: 10),
-//               _DoubleStepper(value: val3, width: 140, onChanged: onVal3Changed),
-//             ],
-//             const SizedBox(width: 10),
-//             _StyledDd(
-//               value: selectedOperator,
-//               items: _kOperators,
-//               width: 190,
-//               onChanged: (v) {
-//                 if (v != null) onOperatorChanged(v);
-//               },
-//             ),
-//             const SizedBox(width: 10),
-//             _StyledDd(
-//               value: compareOptions.contains(selectedCompare)
-//                   ? selectedCompare!
-//                   : (compareOptions.isNotEmpty ? compareOptions.first : ''),
-//               items: compareOptions,
-//               width: 160,
-//               onChanged: (v) {
-//                 if (v != null) onCompareChanged(v);
-//               },
-//             ),
-//             if (canDelete) ...[
-//               const SizedBox(width: 10),
-//               _DeleteBtn(onTap: onDelete),
-//             ],
-//           ]),
-//         ],
-//       ),
-//     );
-//   }
-// }
 
 // ── Narrow / wrap layout (< 700px) ──────────────────────────────
 class EntrySectionInnerCardItems extends StatelessWidget {
@@ -789,6 +712,9 @@ class EntrySectionInnerCardItems extends StatelessWidget {
   final String? selectedCompare;
   final double val1, val2, val3;
   final bool canDelete;
+  final bool showLogic;
+  final String logic;
+  final ValueChanged<String> onLogicChanged;
   final ValueChanged<String> onIndicatorChanged;
   final ValueChanged<String> onOperatorChanged;
   final ValueChanged<String> onCompareChanged;
@@ -807,6 +733,9 @@ class EntrySectionInnerCardItems extends StatelessWidget {
     required this.val2,
     required this.val3,
     required this.canDelete,
+    this.showLogic = false,
+    this.logic = 'AND',
+    required this.onLogicChanged,
     required this.onIndicatorChanged,
     required this.onOperatorChanged,
     required this.onCompareChanged,
@@ -838,20 +767,14 @@ class EntrySectionInnerCardItems extends StatelessWidget {
                   if (v != null) onIndicatorChanged(v);
                 })),
         if (before.aLabel1.isNotEmpty)
-          _labeled(
-              before.aLabel1.toUpperCase(),
-              DoubleStepper(
-                  value: val1, width: 130, onChanged: onVal1Changed)),
+          _labeled(before.aLabel1.toUpperCase(),
+              DoubleStepper(value: val1, width: 130, onChanged: onVal1Changed)),
         if (before.aLabel2.isNotEmpty)
-          _labeled(
-              before.aLabel2.toUpperCase(),
-              DoubleStepper(
-                  value: val2, width: 130, onChanged: onVal2Changed)),
+          _labeled(before.aLabel2.toUpperCase(),
+              DoubleStepper(value: val2, width: 130, onChanged: onVal2Changed)),
         if (before.aLabel3.isNotEmpty)
-          _labeled(
-              before.aLabel3.toUpperCase(),
-              DoubleStepper(
-                  value: val3, width: 130, onChanged: onVal3Changed)),
+          _labeled(before.aLabel3.toUpperCase(),
+              DoubleStepper(value: val3, width: 130, onChanged: onVal3Changed)),
         _labeled(
             'OPERATOR',
             _StyledDd(
@@ -872,7 +795,19 @@ class EntrySectionInnerCardItems extends StatelessWidget {
                 onChanged: (v) {
                   if (v != null) onCompareChanged(v);
                 })),
-        if (canDelete) _labeled(' ',_DeleteBtn(onTap: onDelete)),
+        if (showLogic)
+          _labeled(
+            'LOGIC',
+            _StyledDd(
+              value: logic,
+              items: const ['AND', 'OR'],
+              width: 90,
+              onChanged: (v) {
+                if (v != null) onLogicChanged(v);
+              },
+            ),
+          ),
+        if (canDelete) _labeled(' ', _DeleteBtn(onTap: onDelete)),
       ],
     );
   }
@@ -992,8 +927,6 @@ class _StyledDd extends StatelessWidget {
     );
   }
 }
-
-
 
 class _DeleteBtn extends StatelessWidget {
   final VoidCallback onTap;

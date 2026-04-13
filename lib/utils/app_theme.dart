@@ -15,7 +15,7 @@ class AppColors {
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceVariant = Color(0xFFF9F9F9);
 
-  static const Color border = Color(0xFFE0E0E0);
+  static const Color border = Color.fromARGB(255, 220, 219, 219);
   static const Color borderFocus = Color(0xFF2E7D32);
 
   static const Color textPrimary = Color(0xFF1A1A1A);

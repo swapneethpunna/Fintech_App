@@ -141,31 +141,30 @@ class SectionCard extends StatelessWidget {
 
     if (leftBorderColor == null) return inner;
 
-    return Stack(
-      children: [
-        // The main card shifted right by 3px to leave room for the border bar
-        Padding(
-          padding: const EdgeInsets.only(left: 3),
-          child: inner,
-        ),
-        // Colored left border bar — uses Positioned.fill so it stretches
-        // to the full height of the Stack without needing IntrinsicHeight
-        Positioned(
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 3,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: leftBorderColor,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                bottomLeft: Radius.circular(20),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
+        children: [
+          // The main card shifted right by 3px to leave room for the border bar
+          Padding(
+            padding: const EdgeInsets.only(left: 3),
+            child: inner,
+          ),
+          // Colored left border bar — uses Positioned.fill so it stretches
+          // to the full height of the Stack without needing IntrinsicHeight
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 3,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: leftBorderColor,
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
