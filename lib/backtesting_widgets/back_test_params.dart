@@ -447,7 +447,7 @@ class _SegmentToggle extends StatelessWidget {
                 width: 84,
                 height: double.infinity,
                 decoration: BoxDecoration(
-                  color: sel ? AppColors.accent : Colors.transparent,
+                  color: sel ? AppColors.accentLight : Colors.transparent,
                   borderRadius: BorderRadius.circular(6),
                   boxShadow: sel
                       ? [
@@ -500,7 +500,7 @@ class _DaySelector extends StatelessWidget {
               width: 34,
               height: 34,
               decoration: BoxDecoration(
-                color: sel ? AppColors.accent : AppColors.surface,
+                color: sel ? AppColors.accentLight : AppColors.surface,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                     color: sel ? AppColors.accent : AppColors.border),
@@ -525,7 +525,7 @@ class _DaySelector extends StatelessWidget {
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 9),
             decoration: BoxDecoration(
-              color: AppColors.accent,
+              color: AppColors.accentLight,
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text('ALL',
@@ -673,7 +673,7 @@ class _Pill extends StatelessWidget {
         width: 48,
         height: double.infinity,
         decoration: BoxDecoration(
-          color: selected ? AppColors.accent : Colors.transparent,
+          color: selected ? AppColors.accentLight : Colors.transparent,
           borderRadius: BorderRadius.circular(7),
           boxShadow: selected
               ? [

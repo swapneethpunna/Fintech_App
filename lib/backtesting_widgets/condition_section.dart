@@ -137,35 +137,46 @@ class _RowState {
 
 class EntryConditionsSection extends StatefulWidget {
   final void Function(List<ConditionRowData> rows)? onConditionsChanged;
+  final String initialIndicator;
 
-  const EntryConditionsSection({super.key, this.onConditionsChanged});
+  const EntryConditionsSection({
+    super.key,
+    this.onConditionsChanged,
+    this.initialIndicator = 'EMA',
+  });
 
   @override
-  State<EntryConditionsSection> createState() => _EntryConditionsSectionState();
+  State<EntryConditionsSection> createState() => EntryConditionsSectionState();
 }
 
-class _EntryConditionsSectionState extends State<EntryConditionsSection> {
+class EntryConditionsSectionState extends State<EntryConditionsSection> {
   final TechnicalRepository _repo = TechnicalRepository();
 
   final List<_RowState> _rows = [];
-  final Set<int> _loadingRows = {};
-
   void _notify() {
     widget.onConditionsChanged?.call(_rows.map((r) => r.toData()).toList());
+  }
+
+  /// Called externally via GlobalKey when a quick config is tapped.
+  void resetWithIndicator(String indicator) {
+    setState(() {
+      _rows.clear();
+      _rows.add(_RowState());
+    });
+    _fetchForRow(0, indicator);
   }
 
   @override
   void initState() {
     super.initState();
     _rows.add(_RowState());
-    _fetchForRow(0, 'EMA');
+    _fetchForRow(0, widget.initialIndicator);
   }
 
 // fetches the technical params for the indicator
   Future<void> _fetchForRow(int index, String indicator) async {
     if (index >= _rows.length) return;
     setState(() {
-      _loadingRows.add(index);
       _rows[index].error = null;
     });
     try {
@@ -181,14 +192,12 @@ class _EntryConditionsSectionState extends State<EntryConditionsSection> {
         if (result.after.isNotEmpty) {
           _rows[index].selectedCompare = result.after.first.name;
         }
-        _loadingRows.remove(index);
       });
       _notify();
     } catch (e) {
       if (!mounted || index >= _rows.length) return;
-      setState(() {
+       setState(() {
         _rows[index].error = e.toString();
-        _loadingRows.remove(index);
       });
     }
   }
@@ -202,7 +211,6 @@ class _EntryConditionsSectionState extends State<EntryConditionsSection> {
     if (_rows.length <= 1) return;
     setState(() {
       _rows.removeAt(index);
-      _loadingRows.remove(index);
     });
     _notify();
   }
@@ -210,7 +218,6 @@ class _EntryConditionsSectionState extends State<EntryConditionsSection> {
   void _reset() {
     setState(() {
       _rows.clear();
-      _loadingRows.clear();
       _rows.add(_RowState());
     });
     _fetchForRow(0, 'EMA');
@@ -294,22 +301,18 @@ class _EntryConditionsSectionState extends State<EntryConditionsSection> {
               // ── Condition rows ──────────────────────────────
               ...List.generate(_rows.length, (i) {
                 final row = _rows[i];
-                final loading = _loadingRows.contains(i);
                 final isLast = i == _rows.length - 1;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: loading
-                          ? const _LoadingRow(accentColor: AppColors.primary)
-                          : row.error != null
+                      child: row.error != null
                               ? _ErrorRow(
                                   message: row.error!,
                                   accentColor: AppColors.primary)
                               : row.data == null || row.data!.before.isEmpty
-                                  ? const _EmptyRow(
-                                      accentColor: AppColors.primary)
+                                  ? const SizedBox()
                                   : _ApiConditionRow(
                                       accentColor: AppColors.primary,
                                       before: row.data!.before.first,
@@ -392,39 +395,57 @@ class ExitConditionsSection extends StatefulWidget {
 
   /// Called whenever any condition row changes.
   final void Function(List<ConditionRowData> rows)? onConditionsChanged;
+  final String initialIndicator;
 
   const ExitConditionsSection({
     super.key,
     required this.form,
     required this.onChanged,
     this.onConditionsChanged,
+    this.initialIndicator = 'EMA',
   });
 
   @override
-  State<ExitConditionsSection> createState() => _ExitConditionsSectionState();
+  State<ExitConditionsSection> createState() => ExitConditionsSectionState();
 }
 
-class _ExitConditionsSectionState extends State<ExitConditionsSection> {
+class ExitConditionsSectionState extends State<ExitConditionsSection> {
   final TechnicalRepository _repo = TechnicalRepository();
 
   final List<_RowState> _rows = [];
-  final Set<int> _loadingRows = {};
-
   void _notify() {
     widget.onConditionsChanged?.call(_rows.map((r) => r.toData()).toList());
+  }
+
+  /// Called externally via GlobalKey when a quick config is tapped.
+  void resetWithIndicator(String indicator) {
+    setState(() {
+      _rows.clear();
+      _rows.add(_RowState(selectedOperator: 'Crosses Below'));
+    });
+    _fetchForRow(0, indicator);
   }
 
   @override
   void initState() {
     super.initState();
     _rows.add(_RowState(selectedOperator: 'Crosses Below'));
-    _fetchForRow(0, 'EMA');
+    _fetchForRow(0, widget.initialIndicator);
+  }
+
+  @override
+  void didUpdateWidget(covariant ExitConditionsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If the parent passes a new initialIndicator (config switched while
+    // the widget is already in the tree), re-fetch automatically.
+    if (oldWidget.initialIndicator != widget.initialIndicator) {
+      resetWithIndicator(widget.initialIndicator);
+    }
   }
 
   Future<void> _fetchForRow(int index, String indicator) async {
     if (index >= _rows.length) return;
-    setState(() {
-      _loadingRows.add(index);
+      setState(() {
       _rows[index].error = null;
     });
     try {
@@ -440,14 +461,12 @@ class _ExitConditionsSectionState extends State<ExitConditionsSection> {
         if (result.after.isNotEmpty) {
           _rows[index].selectedCompare = result.after.first.name;
         }
-        _loadingRows.remove(index);
       });
       _notify();
     } catch (e) {
       if (!mounted || index >= _rows.length) return;
       setState(() {
         _rows[index].error = e.toString();
-        _loadingRows.remove(index);
       });
     }
   }
@@ -461,7 +480,6 @@ class _ExitConditionsSectionState extends State<ExitConditionsSection> {
     if (_rows.length <= 1) return;
     setState(() {
       _rows.removeAt(index);
-      _loadingRows.remove(index);
     });
     _notify();
   }
@@ -469,7 +487,6 @@ class _ExitConditionsSectionState extends State<ExitConditionsSection> {
   void _reset() {
     setState(() {
       _rows.clear();
-      _loadingRows.clear();
       _rows.add(_RowState(selectedOperator: 'Crosses Below'));
     });
     _fetchForRow(0, 'EMA');
@@ -537,20 +554,17 @@ class _ExitConditionsSectionState extends State<ExitConditionsSection> {
               // ── Condition rows ──────────────────────────────
               ...List.generate(_rows.length, (i) {
                 final row = _rows[i];
-                final loading = _loadingRows.contains(i);
                 final isLast = i == _rows.length - 1;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: loading
-                          ? _LoadingRow(accentColor: Colors.red)
-                          : row.error != null
+                      child: row.error != null
                               ? _ErrorRow(
                                   message: row.error!, accentColor: Colors.red)
                               : row.data == null || row.data!.before.isEmpty
-                                  ? _EmptyRow(accentColor: Colors.red)
+                                  ? const SizedBox()
                                   : _ApiConditionRow(
                                       accentColor: Colors.red,
                                       before: row.data!.before.first,
@@ -668,17 +682,7 @@ class _ApiConditionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return SectionCard(
       leftBorderColor: accentColor,
-      child: Container(
-          width: MediaQuery.of(context).size.width,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: accentColor == Colors.red
-                ? const Color(0xFFFFF8F8)
-                : const Color(0xFFF7FAF7),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.textHint.withOpacity(0.40)),
-          ),
-          child: EntrySectionInnerCardItems(
+      child:  EntrySectionInnerCardItems(
             before: before,
             compareOptions: compareOptions,
             selectedIndicator: selectedIndicator,
@@ -698,7 +702,7 @@ class _ApiConditionRow extends StatelessWidget {
             onVal2Changed: onVal2Changed,
             onVal3Changed: onVal3Changed,
             onDelete: onDelete,
-          )),
+          ),
     );
   }
 }
@@ -813,33 +817,9 @@ class EntrySectionInnerCardItems extends StatelessWidget {
   }
 }
 
+
 // ════════════════════════════════════════════════════════════════
-//  Inline state widgets (loading / error / empty)
-// ════════════════════════════════════════════════════════════════
-
-class _LoadingRow extends StatelessWidget {
-  final Color accentColor;
-  const _LoadingRow({required this.accentColor});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        height: 60,
-        decoration: BoxDecoration(
-          color: accentColor == Colors.red
-              ? const Color(0xFFFFF8F8)
-              : const Color(0xFFF7FAF7),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: accentColor.withOpacity(0.35)),
-        ),
-        child: const Center(
-          child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2)),
-        ),
-      );
-}
-
+//  Inline state widgets (error / empty)
 class _ErrorRow extends StatelessWidget {
   final String message;
   final Color accentColor;
@@ -858,25 +838,25 @@ class _ErrorRow extends StatelessWidget {
       );
 }
 
-class _EmptyRow extends StatelessWidget {
-  final Color accentColor;
-  const _EmptyRow({required this.accentColor});
+// class _EmptyRow extends StatelessWidget {
+//   final Color accentColor;
+//   const _EmptyRow({required this.accentColor});
 
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: accentColor == Colors.red
-              ? const Color(0xFFFFF8F8)
-              : const Color(0xFFF7FAF7),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: accentColor.withOpacity(0.35)),
-        ),
-        child: Text('No Data',
-            style: GoogleFonts.dmSans(
-                fontSize: 12, color: AppColors.textSecondary)),
-      );
-}
+//   @override
+//   Widget build(BuildContext context) => Container(
+//         padding: const EdgeInsets.all(12),
+//         decoration: BoxDecoration(
+//           color: accentColor == Colors.red
+//               ? const Color(0xFFFFF8F8)
+//               : const Color(0xFFF7FAF7),
+//           borderRadius: BorderRadius.circular(8),
+//           border: Border.all(color: accentColor.withOpacity(0.35)),
+//         ),
+//         child: Text('No Data',
+//             style: GoogleFonts.dmSans(
+//                 fontSize: 12, color: AppColors.textSecondary)),
+//       );
+// }
 
 // ════════════════════════════════════════════════════════════════
 //  Reusable primitive widgets

@@ -21,6 +21,23 @@ class _BacktestingPageState extends State<BacktestingPage> {
   final BacktestFormModel _form = BacktestFormModel();
   int _selectedNavIndex = 4;
 
+  // GlobalKey to imperatively call resetWithIndicator on EntryConditionsSection
+  final GlobalKey<EntryConditionsSectionState> _entryConditionsKey =
+      GlobalKey<EntryConditionsSectionState>();
+
+  // GlobalKey to imperatively call resetWithIndicator on ExitConditionsSection
+  final GlobalKey<ExitConditionsSectionState> _exitConditionsKey =
+      GlobalKey<ExitConditionsSectionState>();
+
+  /// Maps each quick-config name to the indicator sent to fetchTechnicalParams.
+  static const Map<String, String> _quickConfigIndicator = {
+    'EMA CrossOver':   'EMA',
+    'SuperTrend':      'Close',
+    'Parabolic SAR':   'Parabolic SAR',
+    'BBands BreakOut': 'Close',
+    'MACD Crosssover': 'MACD',
+  };
+
   List<ConditionRowData> _entryConditions = [];
   List<ConditionRowData> _exitConditions = [];
 
@@ -229,6 +246,7 @@ class _BacktestingPageState extends State<BacktestingPage> {
   Widget _buildContent(BuildContext context, {required bool isMobile}) {
     final w = MediaQuery.of(context).size.width;
     final hPad = isMobile ? 12.0 : (w < 1024 ? 20.0 : 28.0);
+    final quickConfigSelected = _form.quickConfig != null;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1400),
@@ -242,23 +260,77 @@ class _BacktestingPageState extends State<BacktestingPage> {
               const SizedBox(height: 20),
               TopBar(form: _form, onChanged: () => setState(() {})),
               const SizedBox(height: 20),
-              _card(child: QuickConfigsSection(form: _form, onChanged: () => setState(() {}))),
+              _card(
+                child: QuickConfigsSection(
+                  form: _form,
+                  onChanged: () {
+                    setState(() {});
+                    // When a quick config is selected, pre-fill the Entry When
+                    // section with the indicator mapped to that config.
+                    final config = _form.quickConfig;
+                    if (config != null) {
+                      final indicator =
+                          _quickConfigIndicator[config] ?? 'EMA';
+                      _entryConditionsKey.currentState
+                          ?.resetWithIndicator(indicator);
+                      _exitConditionsKey.currentState
+                          ?.resetWithIndicator(indicator);
+                    }
+                  },
+                ),
+              ),
               const SizedBox(height: 20),
               EntryConditionsSection(
+                key: _entryConditionsKey,
                 onConditionsChanged: (rows) => setState(() => _entryConditions = rows),
               ),
-              const SizedBox(height: 20),
-              ExitConditionsSection(
-                form: _form,
-                onChanged: () => setState(() {}),
-                onConditionsChanged: (rows) => setState(() => _exitConditions = rows),
+
+              // ── Exit When — revealed when a Quick Config is selected ──
+              AnimatedSize(
+                duration: const Duration(milliseconds: 320),
+                curve: Curves.easeInOut,
+                alignment: Alignment.topCenter,
+                child: quickConfigSelected
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20),
+                          ExitConditionsSection(
+                            key: _exitConditionsKey,
+                            form: _form,
+                            onChanged: () => setState(() {}),
+                            onConditionsChanged: (rows) =>
+                                setState(() => _exitConditions = rows),
+                            initialIndicator: _quickConfigIndicator[_form.quickConfig ?? ''] ?? 'EMA',
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
               ),
+
               const SizedBox(height: 20),
               EntryTradeSection(form: _form, onChanged: () => setState(() {})),
-              const SizedBox(height: 20),
-              ExitTradeSection(form: _form, onChanged: () => setState(() {})),
+
+              // ── Exit Trade — revealed when a Quick Config is selected ──
+              AnimatedSize(
+                duration: const Duration(milliseconds: 320),
+                curve: Curves.easeInOut,
+                alignment: Alignment.topCenter,
+                child: quickConfigSelected
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20),
+                          ExitTradeSection(
+                              form: _form, onChanged: () => setState(() {})),
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ),
+
               const SizedBox(height: 20),
               BacktestParamsSection(form: _form, onChanged: () => setState(() {})),
+
               const SizedBox(height: 32),
 
               // ── Run button ──────────────────────────────────────
@@ -275,7 +347,7 @@ class _BacktestingPageState extends State<BacktestingPage> {
                     label: Text(_isRunning ? 'Running…' : 'Run Backtest',
                         style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w700)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent,
+                      backgroundColor: AppColors.accentLight,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: AppColors.accent.withOpacity(0.6),
                       disabledForegroundColor: Colors.white,

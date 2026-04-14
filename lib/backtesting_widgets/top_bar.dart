@@ -75,56 +75,82 @@ class _TopBarContent extends StatelessWidget {
     required this.onChanged,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 14,
-      runSpacing: 12,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        ConstrainedBox(
-          constraints: const BoxConstraints(
-            minWidth: 220,
-            maxWidth: 320,
+@override
+Widget build(BuildContext context) {
+  return Wrap(
+    spacing: 14,
+    runSpacing: 12,
+    alignment: WrapAlignment.spaceBetween, // 👈 pushes groups apart
+    crossAxisAlignment: WrapCrossAlignment.center,
+    children: [
+      // LEFT: Search bar
+      ConstrainedBox(
+        constraints: const BoxConstraints(
+          minWidth: 220,
+          maxWidth: 320,
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          child: _SymbolField(
+            ctrl: ctrl,
+            onSelected: onPickSymbol,
           ),
-          child: SizedBox(
-            width: double.infinity,
-            child: _SymbolField(
-              ctrl: ctrl,
-              onSelected: onPickSymbol,
+        ),
+      ),
+
+      // RIGHT: All controls grouped
+      Wrap(
+        children: [
+          Padding(
+             padding: const EdgeInsets.symmetric(vertical: 4),
+            child: _vDivider(),
+          ),
+          const SizedBox(width: 14),
+          // Lot Size
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: _LotBadge(lotSize: form.lotSize),
+          ),
+          const SizedBox(width: 14),
+          Padding(
+             padding: const EdgeInsets.symmetric(vertical: 4),
+            child: _vDivider(),
+          ),
+          const SizedBox(width: 14),
+          // Mode
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 260),
+              child: _ModeToggle(
+                selected: form.mode,
+                onChanged: (m) => onChanged(() => form.mode = m),
+              ),
             ),
           ),
-        ),
-
-        _vDivider(),
-
-        // Lot Size
-        _LotBadge(lotSize: form.lotSize),
-
-        _vDivider(),
-
-        // Mode
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 260),
-          child: _ModeToggle(
-            selected: form.mode,
-            onChanged: (m) => onChanged(() => form.mode = m),
+          const SizedBox(width: 14),
+          Padding(
+             padding: const EdgeInsets.symmetric(vertical: 4),
+            child: _vDivider(),
           ),
-        ),
-
-        _vDivider(),
-
-        // Timeframe
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 220),
-          child: _TimeframeDropdown(
-            selected: form.timeframe,
-            onChanged: (t) => onChanged(() => form.timeframe = t),
+          const SizedBox(width: 14),
+          // Timeframe
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 220),
+              child: _TimeframeDropdown(
+                selected: form.timeframe,
+                onChanged: (t) =>
+                    onChanged(() => form.timeframe = t),
+              ),
+            ),
           ),
-        ),
-      ],
-    );
-  }
+        ],
+      ),
+    ],
+  );
+}
 
   Widget _vDivider() =>
       Container(width: 1, height: 32, color: AppColors.border);
@@ -242,7 +268,7 @@ class _LotBadge extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.primary),
+              border: Border.all(color: const Color.fromARGB(255, 194, 157, 128)),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text('$lotSize',
@@ -275,7 +301,7 @@ class _ModeToggle extends StatelessWidget {
           const SizedBox(width: 8),
          Flexible(
            child: Container(
-                 height: 38,
+              height: 38,
               decoration: BoxDecoration(
                 color: const Color(0xFFF0F0F0),
                 borderRadius: BorderRadius.circular(6),
@@ -293,7 +319,7 @@ class _ModeToggle extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: sel ? AppColors.accent : Colors.transparent,
+                          color: sel ? AppColors.accentLight : Colors.transparent,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
